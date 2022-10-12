@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/0xPolygonHermez/zkevm-node/pool"
 	"github.com/0xPolygonHermez/zkevm-node/state"
 	"github.com/0xPolygonHermez/zkevm-node/state/runtime"
@@ -66,4 +68,12 @@ type storageInterface interface {
 	NewPendingTransactionFilter() (uint64, error)
 	UninstallFilter(filterID uint64) (bool, error)
 	UpdateFilterLastPoll(filterID uint64) error
+}
+
+// metricsInterface gathers the methods required to interact with metrics.
+type metricsInterface interface {
+	RegisterCounters(opts ...prometheus.CounterOpts)
+	RegisterHistograms(opts ...prometheus.HistogramOpts)
+	GetCounterVec(name string) (counterVec *prometheus.CounterVec, exist bool)
+	GetHistogram(name string) (histogram prometheus.Histogram, exist bool)
 }

@@ -49,6 +49,10 @@ func (s *Server) registerMetrics() {
 }
 
 func (s *Server) requestMetricInc(label string) {
+	if s.metrics == nil {
+		return
+	}
+
 	if counterVec, ok := s.metrics.GetCounterVec(requestsMetricName); ok {
 		counterVec.WithLabelValues(label).Inc()
 		counterVec.WithLabelValues(totalMetricLabel).Inc()
@@ -56,6 +60,10 @@ func (s *Server) requestMetricInc(label string) {
 }
 
 func (s *Server) requestDurationMetric(start time.Time) {
+	if s.metrics == nil {
+		return
+	}
+
 	if histo, ok := s.metrics.GetHistogram(requestDurationName); ok {
 		histo.Observe(time.Since(start).Seconds())
 	}

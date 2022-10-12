@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/0xPolygonHermez/zkevm-node/log"
-	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"github.com/didip/tollbooth/v6"
 )
 
@@ -36,12 +35,12 @@ type Server struct {
 	config  Config
 	handler *Handler
 	srv     *http.Server
-	metrics *metrics.Prometheus
+	metrics metricsInterface
 }
 
 // NewServer returns the JsonRPC server
 func NewServer(cfg Config, p jsonRPCTxPool, s stateInterface,
-	gpe gasPriceEstimator, storage storageInterface, apis map[string]bool) *Server {
+	gpe gasPriceEstimator, storage storageInterface, apis map[string]bool, metrics metricsInterface) *Server {
 	handler := newJSONRpcHandler()
 
 	if _, ok := apis[APIEth]; ok {
@@ -77,6 +76,7 @@ func NewServer(cfg Config, p jsonRPCTxPool, s stateInterface,
 	srv := &Server{
 		config:  cfg,
 		handler: handler,
+		metrics: metrics,
 	}
 	return srv
 }
@@ -101,12 +101,9 @@ func (s *Server) Start() error {
 	lmt := tollbooth.NewLimiter(s.config.MaxRequestsPerIPAndSecond, nil)
 	mux.Handle("/", tollbooth.LimitFuncHandler(lmt, s.handle))
 
-	// TODO(pg): if metrics in config {
-	prom := metrics.NewPrometheus(nil)
-	mux.Handle("/metrics", prom.Handler())
-	s.metrics = prom
-	s.registerMetrics()
-	// }
+	if s.metrics != nil {
+		s.registerMetrics()
+	}
 
 	s.srv = &http.Server{
 		Handler: mux,

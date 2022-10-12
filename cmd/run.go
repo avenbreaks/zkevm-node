@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"math/big"
+	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -17,6 +20,7 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/jsonrpc"
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/0xPolygonHermez/zkevm-node/merkletree"
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"github.com/0xPolygonHermez/zkevm-node/pool"
 	"github.com/0xPolygonHermez/zkevm-node/pool/pgpoolstorage"
 	"github.com/0xPolygonHermez/zkevm-node/pricegetter"
@@ -30,6 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 )
@@ -50,13 +55,13 @@ func start(cliCtx *cli.Context) error {
 		grpcClientConns []*grpc.ClientConn
 		cancelFuncs     []context.CancelFunc
 		etherman        *etherman.Client
+		prometheus      *metrics.Prometheus
 	)
 
 	etherman, err = newEtherman(*c)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	// READ CHAIN ID FROM POE SC
 	l2ChainID, err := etherman.GetL2ChainID()
 	if err != nil {
@@ -92,7 +97,7 @@ func start(cliCtx *cli.Context) error {
 			for _, a := range cliCtx.StringSlice(config.FlagHTTPAPI) {
 				apis[a] = true
 			}
-			go runJSONRPCServer(*c, poolInstance, st, gpe, apis)
+			go runJSONRPCServer(*c, poolInstance, st, gpe, apis, prometheus)
 		case SYNCHRONIZER:
 			log.Info("Running synchronizer")
 			go runSynchronizer(*c, etherman, st)
@@ -100,6 +105,10 @@ func start(cliCtx *cli.Context) error {
 			log.Info("Running broadcast service")
 			go runBroadcastServer(c.BroadcastServer, st)
 		}
+	}
+
+	if c.Metrics.Enabled {
+		go startMetricsHttpServer(c)
 	}
 
 	waitSignal(grpcClientConns, cancelFuncs)
@@ -152,7 +161,7 @@ func runSynchronizer(cfg config.Config, etherman *etherman.Client, st *state.Sta
 	}
 }
 
-func runJSONRPCServer(c config.Config, pool *pool.Pool, st *state.State, gpe gasPriceEstimator, apis map[string]bool) {
+func runJSONRPCServer(c config.Config, pool *pool.Pool, st *state.State, gpe gasPriceEstimator, apis map[string]bool, prometheus *metrics.Prometheus) {
 	storage, err := jsonrpc.NewPostgresStorage(c.RPC.DB)
 	if err != nil {
 		log.Fatal(err)
@@ -160,7 +169,7 @@ func runJSONRPCServer(c config.Config, pool *pool.Pool, st *state.State, gpe gas
 
 	c.RPC.MaxCumulativeGasUsed = c.Sequencer.MaxCumulativeGasUsed
 
-	if err := jsonrpc.NewServer(c.RPC, pool, st, gpe, storage, apis).Start(); err != nil {
+	if err := jsonrpc.NewServer(c.RPC, pool, st, gpe, storage, apis, prometheus).Start(); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -290,4 +299,24 @@ func createPool(poolDBConfig db.Config, l2BridgeAddr common.Address, l2ChainID u
 	}
 	poolInstance := pool.NewPool(poolStorage, st, l2BridgeAddr, l2ChainID)
 	return poolInstance
+}
+
+func startMetricsHttpServer(c *config.Config) {
+	mux := http.NewServeMux()
+	address := fmt.Sprintf("%s:%d", c.Metrics.Host, c.Metrics.Port)
+	lis, err := net.Listen("tcp", address)
+	if err != nil {
+		log.Fatalf("failed to create tcp listener for metrics: %v", err)
+		return
+	}
+	mux.Handle("/metrics", promhttp.Handler())
+	metricsServer := &http.Server{
+		Handler: mux,
+	}
+	if err := metricsServer.Serve(lis); err != nil {
+		if err == http.ErrServerClosed {
+			log.Infof("http server for metrics stopped")
+		}
+		log.Fatalf("closed http connection for metrics server: %v", err)
+	}
 }

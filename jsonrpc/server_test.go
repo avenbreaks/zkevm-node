@@ -27,6 +27,7 @@ type mocks struct {
 	GasPriceEstimator *gasPriceEstimatorMock
 	Storage           *storageMock
 	DbTx              *dbTxMock
+	Metrics           *metricsMock
 }
 
 func newMockedServer(t *testing.T, cfg Config) (*mockedServer, *mocks, *ethclient.Client) {
@@ -35,6 +36,7 @@ func newMockedServer(t *testing.T, cfg Config) (*mockedServer, *mocks, *ethclien
 	gasPriceEstimator := newGasPriceEstimatorMock(t)
 	storage := newStorageMock(t)
 	dbTx := newDbTxMock(t)
+	metrics := newMetricsMock(t)
 	apis := map[string]bool{
 		APIEth:    true,
 		APINet:    true,
@@ -44,7 +46,7 @@ func newMockedServer(t *testing.T, cfg Config) (*mockedServer, *mocks, *ethclien
 		APIWeb3:   true,
 	}
 
-	server := NewServer(cfg, pool, state, gasPriceEstimator, storage, apis)
+	server := NewServer(cfg, pool, state, gasPriceEstimator, storage, apis, metrics)
 
 	go func() {
 		err := server.Start()
@@ -79,6 +81,7 @@ func newMockedServer(t *testing.T, cfg Config) (*mockedServer, *mocks, *ethclien
 		GasPriceEstimator: gasPriceEstimator,
 		Storage:           storage,
 		DbTx:              dbTx,
+		Metrics:           metrics,
 	}
 
 	return msv, mks, ethClient

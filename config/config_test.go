@@ -263,6 +263,18 @@ func Test_Defaults(t *testing.T) {
 			path:          "BroadcastServer.Port",
 			expectedValue: 61090,
 		},
+		{
+			path:          "Metrics.Host",
+			expectedValue: "localhost",
+		},
+		{
+			path:          "Metrics.Port",
+			expectedValue: 9001,
+		},
+		{
+			path:          "Metrics.Enabled",
+			expectedValue: false,
+		},
 	}
 	file, err := ioutil.TempFile("", "genesisConfig")
 	require.NoError(t, err)
