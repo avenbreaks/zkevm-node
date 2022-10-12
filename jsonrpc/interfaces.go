@@ -5,14 +5,13 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/0xPolygonHermez/zkevm-node/pool"
 	"github.com/0xPolygonHermez/zkevm-node/state"
 	"github.com/0xPolygonHermez/zkevm-node/state/runtime"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jackc/pgx/v4"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // jsonRPCTxPool contains the methods required to interact with the tx pool.
@@ -70,7 +69,7 @@ type storageInterface interface {
 	UpdateFilterLastPoll(filterID uint64) error
 }
 
-// metricsInterface gathers the methods required to interact with metrics.
+// metricsInterface contains the methods required to interact with metrics.
 type metricsInterface interface {
 	RegisterCounters(opts ...prometheus.CounterOpts)
 	RegisterHistograms(opts ...prometheus.HistogramOpts)

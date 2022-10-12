@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/jackc/pgx/v4"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Consumer interfaces required by the package.
@@ -81,4 +82,12 @@ type priceGetter interface {
 // gasPriceEstimator contains the methods required to interact with gas price estimator
 type gasPriceEstimator interface {
 	GetAvgGasPrice(ctx context.Context) (*big.Int, error)
+}
+
+// metricsInterface contains the methods required to interact with metrics.
+type metricsInterface interface {
+	RegisterCounters(opts ...prometheus.CounterOpts)
+	RegisterHistograms(opts ...prometheus.HistogramOpts)
+	IncCounterVec(name string, label string)
+	ObserveHistogram(name string, start time.Time)
 }

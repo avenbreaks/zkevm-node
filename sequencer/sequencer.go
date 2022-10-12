@@ -36,6 +36,8 @@ type Sequencer struct {
 	isSequenceTooBig bool
 
 	sequenceInProgress types.Sequence
+
+	metrics metricsInterface
 }
 
 // New init sequencer
@@ -46,7 +48,8 @@ func New(
 	etherman etherman,
 	priceGetter priceGetter,
 	manager txManager,
-	gpe gasPriceEstimator) (*Sequencer, error) {
+	gpe gasPriceEstimator,
+	metrics metricsInterface) (*Sequencer, error) {
 	checker := profitabilitychecker.New(cfg.ProfitabilityChecker, etherman, priceGetter)
 
 	addr, err := etherman.TrustedSequencer()
@@ -64,6 +67,7 @@ func New(
 		txManager: manager,
 		gpe:       gpe,
 		address:   addr,
+		metrics:   metrics,
 	}, nil
 }
 

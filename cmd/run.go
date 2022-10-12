@@ -86,7 +86,7 @@ func start(cliCtx *cli.Context) error {
 			log.Info("Running sequencer")
 			poolInstance := createPool(c.PoolDB, c.NetworkConfig.L2BridgeAddr, l2ChainID, st)
 			gpe := createGasPriceEstimator(c.GasPriceEstimator, st, poolInstance)
-			seq := createSequencer(*c, poolInstance, st, etherman, ethTxManager, gpe)
+			seq := createSequencer(*c, poolInstance, st, etherman, ethTxManager, gpe, prometheus)
 			go seq.Start(ctx)
 		case RPC:
 			log.Info("Running JSON-RPC server")
@@ -175,13 +175,13 @@ func runJSONRPCServer(c config.Config, pool *pool.Pool, st *state.State, gpe gas
 }
 
 func createSequencer(c config.Config, pool *pool.Pool, state *state.State, etherman *etherman.Client,
-	ethTxManager *ethtxmanager.Client, gpe gasPriceEstimator) *sequencer.Sequencer {
+	ethTxManager *ethtxmanager.Client, gpe gasPriceEstimator, prometheus *metrics.Prometheus) *sequencer.Sequencer {
 	pg, err := pricegetter.NewClient(c.PriceGetter)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	seq, err := sequencer.New(c.Sequencer, pool, state, etherman, pg, ethTxManager, gpe)
+	seq, err := sequencer.New(c.Sequencer, pool, state, etherman, pg, ethTxManager, gpe, prometheus)
 	if err != nil {
 		log.Fatal(err)
 	}

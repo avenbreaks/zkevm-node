@@ -17,6 +17,7 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/pool"
 	"github.com/0xPolygonHermez/zkevm-node/pool/pgpoolstorage"
 	"github.com/0xPolygonHermez/zkevm-node/pricegetter"
+	"github.com/0xPolygonHermez/zkevm-node/sequencer/mocks"
 	"github.com/0xPolygonHermez/zkevm-node/sequencer/profitabilitychecker"
 	st "github.com/0xPolygonHermez/zkevm-node/state"
 	"github.com/0xPolygonHermez/zkevm-node/state/runtime/executor"
@@ -184,7 +185,7 @@ func TestSequenceTooBig(t *testing.T) {
 		ProfitabilityChecker: profitabilitychecker.Config{
 			SendBatchesEvenWhenNotProfitable: true,
 		},
-	}, pool, state, eth_man, pg, ethtxmanager, gpe)
+	}, pool, state, eth_man, pg, ethtxmanager, gpe, mocks.NewMetricsMock(t))
 	require.NoError(t, err)
 
 	// generate fake data

@@ -354,6 +354,7 @@ generate-mocks: ## Generates mocks for the tests, using mockery tool
 	mockery --name=etherman --dir=sequencer --output=sequencer/mocks --outpkg=mocks --structname=EthermanMock --filename=mock_etherman.go
 	mockery --name=etherman --dir=sequencer/profitabilitychecker --output=sequencer/profitabilitychecker/mocks --outpkg=mocks --structname=EthermanMock --filename=mock_etherman.go
 	mockery --name=stateInterface --dir=sequencer/broadcast --output=sequencer/broadcast/mocks --outpkg=mocks --structname=StateMock --filename=mock_state.go
+	mockery --name=metricsInterface --dir=sequencer --output=sequencer/mocks --outpkg=mocks --structname=MetricsMock --filename=mock_metrics.go
 
 	mockery --name=ethermanInterface --dir=synchronizer --output=synchronizer --outpkg=synchronizer --structname=ethermanMock --filename=mock_etherman.go
 	mockery --name=stateInterface --dir=synchronizer --output=synchronizer --outpkg=synchronizer --structname=stateMock --filename=mock_state.go
