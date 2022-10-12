@@ -74,6 +74,6 @@ type storageInterface interface {
 type metricsInterface interface {
 	RegisterCounters(opts ...prometheus.CounterOpts)
 	RegisterHistograms(opts ...prometheus.HistogramOpts)
-	GetCounterVec(name string) (counterVec *prometheus.CounterVec, exist bool)
-	GetHistogram(name string) (histogram prometheus.Histogram, exist bool)
+	IncCounterVec(name string, label string)
+	ObserveHistogram(name string, start time.Time)
 }

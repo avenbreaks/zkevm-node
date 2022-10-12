@@ -53,10 +53,8 @@ func (s *Server) requestMetricInc(label string) {
 		return
 	}
 
-	if counterVec, ok := s.metrics.GetCounterVec(requestsMetricName); ok {
-		counterVec.WithLabelValues(label).Inc()
-		counterVec.WithLabelValues(totalMetricLabel).Inc()
-	}
+	s.metrics.IncCounterVec(requestsMetricName, label)
+	s.metrics.IncCounterVec(requestsMetricName, totalMetricLabel)
 }
 
 func (s *Server) requestDurationMetric(start time.Time) {
@@ -64,7 +62,5 @@ func (s *Server) requestDurationMetric(start time.Time) {
 		return
 	}
 
-	if histo, ok := s.metrics.GetHistogram(requestDurationName); ok {
-		histo.Observe(time.Since(start).Seconds())
-	}
+	s.metrics.ObserveHistogram(requestDurationName, start)
 }

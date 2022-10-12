@@ -3,6 +3,7 @@ package metrics
 import (
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,12 +19,6 @@ type Prometheus struct {
 	counterVecs map[string]*prometheus.CounterVec
 	histograms  map[string]prometheus.Histogram
 	summaries   map[string]prometheus.Summary
-}
-
-// CounterVecOpts is a struct containing the options needed to create a CounterVec
-type CounterVecOpts struct {
-	prometheus.CounterOpts
-	labels []string
 }
 
 // NewPrometheus returns a new instance of Prometheus.
@@ -108,6 +103,12 @@ func (p *Prometheus) UnregisterCounters(names ...string) {
 	}
 }
 
+// CounterVecOpts holds options for the CounterVec type.
+type CounterVecOpts struct {
+	prometheus.CounterOpts
+	labels []string
+}
+
 // RegisterCounterVecs registers the provided counter vec metrics to the Prometheus registerer.
 func (p *Prometheus) RegisterCounterVecs(opts ...CounterVecOpts) {
 	p.mu.Lock()
@@ -126,6 +127,13 @@ func (p *Prometheus) GetCounterVec(name string) (counterVec *prometheus.CounterV
 	counterVec, exist = p.counterVecs[name]
 
 	return counterVec, exist
+}
+
+// IncCounterVec increments the counter vec with the given label.
+func (p *Prometheus) IncCounterVec(name string, label string) {
+	if cv, ok := p.GetCounterVec(name); ok {
+		cv.WithLabelValues(label).Inc()
+	}
 }
 
 // UnregisterCounterVecs unregisters the provided counter vec metrics from the Prometheus registerer.
@@ -158,6 +166,13 @@ func (p *Prometheus) GetHistogram(name string) (histogram prometheus.Histogram, 
 	}
 
 	return histogram, exist
+}
+
+// ObserveHistogram observes the histogram from the given start time.
+func (p *Prometheus) ObserveHistogram(name string, start time.Time) {
+	if histo, ok := p.GetHistogram(name); ok {
+		histo.Observe(time.Since(start).Seconds())
+	}
 }
 
 // UnregisterHistogram unregisters the provided histogram metrics from the Prometheus registerer.

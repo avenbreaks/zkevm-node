@@ -3,6 +3,8 @@
 package jsonrpc
 
 import (
+	time "time"
+
 	prometheus "github.com/prometheus/client_golang/prometheus"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -12,50 +14,14 @@ type metricsMock struct {
 	mock.Mock
 }
 
-// GetCounterVec provides a mock function with given fields: name
-func (_m *metricsMock) GetCounterVec(name string) (*prometheus.CounterVec, bool) {
-	ret := _m.Called(name)
-
-	var r0 *prometheus.CounterVec
-	if rf, ok := ret.Get(0).(func(string) *prometheus.CounterVec); ok {
-		r0 = rf(name)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*prometheus.CounterVec)
-		}
-	}
-
-	var r1 bool
-	if rf, ok := ret.Get(1).(func(string) bool); ok {
-		r1 = rf(name)
-	} else {
-		r1 = ret.Get(1).(bool)
-	}
-
-	return r0, r1
+// IncCounterVec provides a mock function with given fields: name, label
+func (_m *metricsMock) IncCounterVec(name string, label string) {
+	_m.Called(name, label)
 }
 
-// GetHistogram provides a mock function with given fields: name
-func (_m *metricsMock) GetHistogram(name string) (prometheus.Histogram, bool) {
-	ret := _m.Called(name)
-
-	var r0 prometheus.Histogram
-	if rf, ok := ret.Get(0).(func(string) prometheus.Histogram); ok {
-		r0 = rf(name)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(prometheus.Histogram)
-		}
-	}
-
-	var r1 bool
-	if rf, ok := ret.Get(1).(func(string) bool); ok {
-		r1 = rf(name)
-	} else {
-		r1 = ret.Get(1).(bool)
-	}
-
-	return r0, r1
+// ObserveHistogram provides a mock function with given fields: name, start
+func (_m *metricsMock) ObserveHistogram(name string, start time.Time) {
+	_m.Called(name, start)
 }
 
 // RegisterCounters provides a mock function with given fields: opts
