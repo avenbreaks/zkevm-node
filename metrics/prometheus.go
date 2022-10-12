@@ -11,12 +11,13 @@ import (
 
 // Prometheus wrapper containing utility methods for registering and retrieving different metrics.
 type Prometheus struct {
-	mu         *sync.RWMutex
-	registerer prometheus.Registerer
-	gauges     map[string]prometheus.Gauge
-	counters   map[string]prometheus.Counter
-	histograms map[string]prometheus.Histogram
-	summaries  map[string]prometheus.Summary
+	mu          *sync.RWMutex
+	registerer  prometheus.Registerer
+	gauges      map[string]prometheus.Gauge
+	counters    map[string]prometheus.Counter
+	counterVecs map[string]prometheus.CounterVec
+	histograms  map[string]prometheus.Histogram
+	summaries   map[string]prometheus.Summary
 }
 
 // NewPrometheus returns a new instance of Prometheus.
@@ -25,12 +26,13 @@ func NewPrometheus(registerer prometheus.Registerer) *Prometheus {
 		registerer = prometheus.DefaultRegisterer
 	}
 	return &Prometheus{
-		mu:         new(sync.RWMutex),
-		registerer: registerer,
-		gauges:     make(map[string]prometheus.Gauge),
-		counters:   make(map[string]prometheus.Counter),
-		histograms: make(map[string]prometheus.Histogram),
-		summaries:  make(map[string]prometheus.Summary),
+		mu:          new(sync.RWMutex),
+		registerer:  registerer,
+		gauges:      make(map[string]prometheus.Gauge),
+		counters:    make(map[string]prometheus.Counter),
+		counterVecs: make(map[string]prometheus.CounterVec),
+		histograms:  make(map[string]prometheus.Histogram),
+		summaries:   make(map[string]prometheus.Summary),
 	}
 }
 
@@ -73,6 +75,26 @@ func (p *Prometheus) GetGauge(name string) (gauge prometheus.Gauge, exist bool) 
 
 // RegisterCounters registers the provided counter metrics to the Prometheus registerer.
 func (p *Prometheus) RegisterCounters(opts ...prometheus.CounterOpts) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	for _, options := range opts {
+		p.registerCounterIfNotExists(options)
+	}
+}
+
+// GetCounter retrieves counter metric by name
+func (p *Prometheus) GetCounterVec(name string) (counterVec prometheus.CounterVec, exist bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	counterVec, exist = p.counterVecs[name]
+
+	return counterVec, exist
+}
+
+// RegisterCounterVecs registers the provided counter vec metrics to the Prometheus registerer.
+func (p *Prometheus) RegisterCounterVecs(opts ...prometheus.CounterOpts) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -215,6 +237,46 @@ func (p *Prometheus) unregisterCounterIfExists(name string) {
 	}
 	delete(p.counters, name)
 	log.Infof("Counter Metric '%v' successfully unregistered!", name)
+}
+
+// registerCounterVecIfNotExists registers single counter vec metric if not exists
+func (p *Prometheus) registerCounterVecIfNotExists(opts prometheus.CounterOpts, labels []string) {
+	if _, exist := p.counters[opts.Name]; exist {
+		log.Warnf("Counter vec metric '%v' already exists.", opts.Name)
+		return
+	}
+
+	log.Infof("Creating Counter Vec Metric '%v' ...", opts.Name)
+	counterVec := prometheus.NewCounterVec(opts, labels)
+	log.Infof("Counter Vec Metric '%v' successfully created! Labels: %p", opts.Name, opts.ConstLabels)
+
+	log.Infof("Registering Counter Vec Metric '%v' ...", opts.Name)
+	p.registerer.MustRegister(counterVec)
+	log.Infof("Counter Vec Metric '%v' successfully registered!", opts.Name)
+
+	p.counterVecs[opts.Name] = *counterVec
+}
+
+// unregisterCounterIfExists unregisters single counter metric if exists
+func (p *Prometheus) unregisterCounterVecIfExists(name string) {
+	var (
+		counterVec prometheus.CounterVec
+		ok         bool
+	)
+
+	if counterVec, ok = p.counterVecs[name]; !ok {
+		log.Warnf("Trying to delete non-existing Counter Vec counter '%v'.", name)
+		return
+	}
+
+	log.Infof("Unregistering Counter Vec Metric '%v' ...", name)
+	ok = p.registerer.Unregister(counterVec)
+	if !ok {
+		log.Errorf("Failed to unregister Counter Vec Metric '%v'.", name)
+		return
+	}
+	delete(p.counters, name)
+	log.Infof("Counter Vec Metric '%v' successfully unregistered!", name)
 }
 
 // registerHistogramIfNotExists registers single histogram metric if not exists

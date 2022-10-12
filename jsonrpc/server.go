@@ -9,12 +9,11 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/0xPolygonHermez/zkevm-node/log"
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"github.com/didip/tollbooth/v6"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -37,27 +36,8 @@ type Server struct {
 	config  Config
 	handler *Handler
 	srv     *http.Server
+	metrics *metrics.Prometheus
 }
-
-var (
-	requests = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "jsonrpc_requests",
-			Help: "JSONRPC number of requests received",
-		},
-		[]string{"request_label"},
-	)
-	start           = 0.1
-	width           = 0.1
-	count           = 10
-	requestDuration = promauto.NewHistogram(
-		prometheus.HistogramOpts{
-			Name:    "jsonrpc_request_duration",
-			Help:    "JSONRPC Histogram for the runtime of requests",
-			Buckets: prometheus.LinearBuckets(start, width, count),
-		},
-	)
-)
 
 // NewServer returns the JsonRPC server
 func NewServer(cfg Config, p jsonRPCTxPool, s stateInterface,
@@ -119,8 +99,12 @@ func (s *Server) Start() error {
 	mux := http.NewServeMux()
 
 	lmt := tollbooth.NewLimiter(s.config.MaxRequestsPerIPAndSecond, nil)
-	mux.Handle("/metrics", promhttp.Handler())
 	mux.Handle("/", tollbooth.LimitFuncHandler(lmt, s.handle))
+	// TODO(pg): if metrics in config {
+	prom := metrics.NewPrometheus(nil)
+	mux.Handle("/metrics", prom.Handler())
+	s.metrics = prom
+	// }
 
 	s.srv = &http.Server{
 		Handler: mux,
@@ -163,8 +147,8 @@ func (s *Server) handle(w http.ResponseWriter, req *http.Request) {
 
 	requestLabel := "undefined"
 	defer func() {
-		requests.WithLabelValues("Total").Inc()
-		requests.WithLabelValues(requestLabel).Inc()
+		s.requestHandled(requestLabel)
+		s.requestHandled("Total")
 	}()
 
 	if (*req).Method == "OPTIONS" {
@@ -202,7 +186,7 @@ func (s *Server) handle(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	timer := prometheus.NewTimer(requestDuration)
+	start := time.Now()
 	if single {
 		requestLabel = "single"
 		s.handleSingleRequest(w, data)
@@ -210,7 +194,7 @@ func (s *Server) handle(w http.ResponseWriter, req *http.Request) {
 		requestLabel = "batch"
 		s.handleBatchRequest(w, data)
 	}
-	timer.ObserveDuration()
+	s.requestDuration(float64(time.Since(start).Seconds()))
 }
 
 func (s *Server) isSingleRequest(data []byte) (bool, rpcError) {
