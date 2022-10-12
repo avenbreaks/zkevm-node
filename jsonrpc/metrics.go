@@ -4,14 +4,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var (
-	gauges     map[string]prometheus.GaugeOpts
-	counters   map[string]prometheus.CounterOpts
-	histograms map[string]prometheus.HistogramOpts
-	summaries  map[string]prometheus.SummaryOpts
-)
-
 func (s *Server) registerMetrics() {
+	var (
+		// gauges     map[string]prometheus.GaugeOpts
+		counters   map[string]prometheus.CounterOpts
+		histograms map[string]prometheus.HistogramOpts
+		// summaries  map[string]prometheus.SummaryOpts
+	)
+
 	counters = map[string]prometheus.CounterOpts{
 		"requests": {
 			Name: "jsonrpc_requests",

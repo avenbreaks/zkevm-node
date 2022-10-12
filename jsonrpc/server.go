@@ -104,6 +104,7 @@ func (s *Server) Start() error {
 	prom := metrics.NewPrometheus(nil)
 	mux.Handle("/metrics", prom.Handler())
 	s.metrics = prom
+	s.registerMetrics()
 	// }
 
 	s.srv = &http.Server{
