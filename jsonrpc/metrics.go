@@ -1,20 +1,34 @@
 package jsonrpc
 
 import (
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
+)
+
+const (
+	metricPrefix        = "jsonrpc_"
+	metricRequestPrefix = metricPrefix + "request_"
+	requestsMetricName  = metricRequestPrefix + "counter"
+	requestDurationName = metricRequestPrefix + "duration"
+
+	invalidRequestMetricLabel = metricRequestPrefix + "invalid"
+	singleRequestMetricLabel  = metricRequestPrefix + "single"
+	batchRequestMetricLabel   = metricRequestPrefix + "batch"
+	totalMetricLabel          = metricRequestPrefix + "total"
 )
 
 func (s *Server) registerMetrics() {
 	var (
 		// gauges     map[string]prometheus.GaugeOpts
-		counters   map[string]prometheus.CounterOpts
-		histograms map[string]prometheus.HistogramOpts
+		counters   []prometheus.CounterOpts
+		histograms []prometheus.HistogramOpts
 		// summaries  map[string]prometheus.SummaryOpts
 	)
 
-	counters = map[string]prometheus.CounterOpts{
-		"requests": {
-			Name: "jsonrpc_requests",
+	counters = []prometheus.CounterOpts{
+		{
+			Name: requestsMetricName,
 			Help: "JSONRPC number of requests received",
 		},
 	}
@@ -22,31 +36,27 @@ func (s *Server) registerMetrics() {
 	start := 0.1
 	width := 0.1
 	count := 10
-	histograms = map[string]prometheus.HistogramOpts{
-		"requestDuration": {
-			Name:    "jsonrpc_request_duration",
+	histograms = []prometheus.HistogramOpts{
+		{
+			Name:    requestDurationName,
 			Help:    "JSONRPC Histogram for the runtime of requests",
 			Buckets: prometheus.LinearBuckets(start, width, count),
 		},
 	}
 
-	for _, counter := range counters {
-		s.metrics.RegisterCounters(counter)
-	}
-
-	for _, histogram := range histograms {
-		s.metrics.RegisterHistograms(histogram)
-	}
+	s.metrics.RegisterCounters(counters...)
+	s.metrics.RegisterHistograms(histograms...)
 }
 
-func (s *Server) requestHandled(label string) {
-	if counterVec, ok := s.metrics.GetCounterVec("requests"); ok {
+func (s *Server) requestMetricInc(label string) {
+	if counterVec, ok := s.metrics.GetCounterVec(requestsMetricName); ok {
 		counterVec.WithLabelValues(label).Inc()
+		counterVec.WithLabelValues(totalMetricLabel).Inc()
 	}
 }
 
-func (s *Server) requestDuration(value float64) {
-	if histo, ok := s.metrics.GetHistogram("requestDuration"); ok {
-		histo.Observe(value)
+func (s *Server) requestDurationMetric(start time.Time) {
+	if histo, ok := s.metrics.GetHistogram(requestDurationName); ok {
+		histo.Observe(time.Since(start).Seconds())
 	}
 }
