@@ -25,7 +25,11 @@ const (
 )
 
 func (s *Server) registerMetrics() {
+<<<<<<< Updated upstream
 	if s.metrics == nil {
+=======
+	if !s.metricsEnabled {
+>>>>>>> Stashed changes
 		return
 	}
 
@@ -62,7 +66,7 @@ func (s *Server) registerMetrics() {
 }
 
 func (s *Server) requestMetricInc(label requestMetricLabel) {
-	if s.metrics == nil {
+	if !s.metricsEnabled {
 		return
 	}
 
@@ -70,7 +74,7 @@ func (s *Server) requestMetricInc(label requestMetricLabel) {
 }
 
 func (s *Server) requestDurationMetric(start time.Time) {
-	if s.metrics == nil {
+	if !s.metricsEnabled {
 		return
 	}
 

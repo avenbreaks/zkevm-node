@@ -10,8 +10,8 @@ services:
       - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
       - ZKEVM_NODE_POOL_HOST=zkevm-pool-db
       - ZKEVM_NODE_ETHERMAN_PRIVATEKEYPATH=/pk/keystore
-#    ports: # Needed if metrics enabled
-#      - 9091:9091
+    ports: # Needed if metrics enabled
+      - 9091:9091
     volumes:
       - ./test/test.keystore:/pk/keystore
       - ./${CONFIG_MODE}/config/config.${CONFIG_MODE:-local}.toml:/app/config.toml
@@ -26,7 +26,7 @@ services:
     image: zkevm-node
     ports:
       - 8123:8123
-#      - 9092:9091 # Needed if metrics enabled
+      - 9092:9091 # Needed if metrics enabled
     environment:
       - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
       - ZKEVM_NODE_POOL_HOST=zkevm-pool-db
@@ -47,7 +47,7 @@ services:
     image: zkevm-node
     ports:
       - 8125:8125
-#      - 9093:9091 # Needed if metrics enabled
+      - 9093:9091 # Needed if metrics enabled
     environment:
       - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
       - ZKEVM_NODE_POOL_HOST=zkevm-pool-db
@@ -263,7 +263,7 @@ services:
 
   zkprover-mock:
     container_name: zkprover-mock
-    image: hermeznetwork/zkprover-mock:latest
+    image: zkprover-mock
     ports:
       - 43061:43061 # MT
       - 43071:43071 # Executor
@@ -332,20 +332,16 @@ services:
     command:
       - "/bin/sh"
       - "-c"
-<<<<<<< HEAD
       - "/app/zkevm-node run --genesis /app/genesis.json --cfg /app/config.toml --components \"rpc,synchronizer\""
-=======
-      - "/app/zkevm-node run --network local --cfg /app/config.toml --components \"rpc,synchronizer\""
-#  # Needed if metrics enabled
-#  prometheus:
-#    image: prom/prometheus:v2.34.0
-#    container_name: prometheus
-#    restart: unless-stopped
-#    ports:
-#      - 9090:9090
-#    command:
-#      - --config.file=/etc/prometheus/prometheus.yml
-#      - --web.enable-lifecycle
-#    volumes:
-#      - ./config/metrics/prometheus:/etc/prometheus
->>>>>>> Adding example for prometheus in docker-compose and updating port of metrics http server. Fixing counterVecs check if exists.
+  # Needed if metrics enabled
+  prometheus:
+    image: prom/prometheus:v2.34.0
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - 9090:9090
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    volumes:
+      - ./config/metrics/prometheus:/etc/prometheus

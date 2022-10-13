@@ -48,6 +48,7 @@ func TestSequenceTooBig(t *testing.T) {
 	)
 
 	var (
+		metricsEnabled   = false
 		CONFIG_ADDRESSES = map[string]common.Address{
 			CONFIG_NAME_POE:   common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"), // <= PoE
 			CONFIG_NAME_MATIC: common.HexToAddress("0x5FbDB2315678afecb367f032d93F642f64180aa3"), // <= Matic
@@ -185,7 +186,7 @@ func TestSequenceTooBig(t *testing.T) {
 		ProfitabilityChecker: profitabilitychecker.Config{
 			SendBatchesEvenWhenNotProfitable: true,
 		},
-	}, pool, state, eth_man, pg, ethtxmanager, gpe, mocks.NewMetricsMock(t))
+	}, pool, state, eth_man, pg, ethtxmanager, gpe, mocks.NewMetricsMock(t), metricsEnabled)
 	require.NoError(t, err)
 
 	// generate fake data

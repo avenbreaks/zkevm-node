@@ -19,7 +19,7 @@ type CounterVecOpts struct {
 // Prometheus wrapper containing utility methods for registering and retrieving
 // different metrics.
 type Prometheus struct {
-	mu          *sync.RWMutex
+	mu          sync.RWMutex
 	registerer  prometheus.Registerer
 	gauges      map[string]prometheus.Gauge
 	counters    map[string]prometheus.Counter
@@ -31,7 +31,7 @@ type Prometheus struct {
 // NewPrometheus returns a new instance of Prometheus.
 func NewPrometheus() *Prometheus {
 	return &Prometheus{
-		mu:          new(sync.RWMutex),
+		mu:          sync.RWMutex{},
 		registerer:  prometheus.DefaultRegisterer,
 		gauges:      make(map[string]prometheus.Gauge),
 		counters:    make(map[string]prometheus.Counter),

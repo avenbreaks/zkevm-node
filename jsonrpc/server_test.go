@@ -13,6 +13,7 @@ import (
 const (
 	host                      = "localhost"
 	maxRequestsPerIPAndSecond = 1000
+	metricsEnabled            = false
 )
 
 type mockedServer struct {
@@ -46,7 +47,7 @@ func newMockedServer(t *testing.T, cfg Config) (*mockedServer, *mocks, *ethclien
 		APIWeb3:   true,
 	}
 
-	server := NewServer(cfg, pool, state, gasPriceEstimator, storage, apis, metrics)
+	server := NewServer(cfg, pool, state, gasPriceEstimator, storage, apis, metrics, metricsEnabled)
 
 	go func() {
 		err := server.Start()

@@ -30,17 +30,30 @@ const (
 	APIWeb3 = "web3"
 )
 
+var (
+	nilMetrics metricsInterface
+)
+
 // Server is an API backend to handle RPC requests
 type Server struct {
-	config  Config
-	handler *Handler
-	srv     *http.Server
-	metrics metricsInterface
+	config         Config
+	handler        *Handler
+	srv            *http.Server
+	metrics        metricsInterface
+	metricsEnabled bool
 }
 
 // NewServer returns the JsonRPC server
-func NewServer(cfg Config, p jsonRPCTxPool, s stateInterface,
-	gpe gasPriceEstimator, storage storageInterface, apis map[string]bool, metrics metricsInterface) *Server {
+func NewServer(
+	cfg Config,
+	p jsonRPCTxPool,
+	s stateInterface,
+	gpe gasPriceEstimator,
+	storage storageInterface,
+	apis map[string]bool,
+	metrics metricsInterface,
+	metricsEnabled bool,
+) *Server {
 	handler := newJSONRpcHandler()
 
 	if _, ok := apis[APIEth]; ok {
@@ -74,9 +87,10 @@ func NewServer(cfg Config, p jsonRPCTxPool, s stateInterface,
 	}
 
 	srv := &Server{
-		config:  cfg,
-		handler: handler,
-		metrics: metrics,
+		config:         cfg,
+		handler:        handler,
+		metrics:        metrics,
+		metricsEnabled: metricsEnabled,
 	}
 	return srv
 }
@@ -101,7 +115,7 @@ func (s *Server) Start() error {
 	lmt := tollbooth.NewLimiter(s.config.MaxRequestsPerIPAndSecond, nil)
 	mux.Handle("/", tollbooth.LimitFuncHandler(lmt, s.handle))
 
-	if s.metrics != nil {
+	if s.metricsEnabled {
 		s.registerMetrics()
 	}
 

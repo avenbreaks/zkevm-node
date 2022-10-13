@@ -10,10 +10,16 @@ const (
 )
 
 func (s *Sequencer) registerMetrics() {
+<<<<<<< Updated upstream
 	if s.metrics == nil {
 		return
 	}
 
+=======
+	if !s.metricsEnabled {
+		return
+	}
+>>>>>>> Stashed changes
 	var counters []prometheus.CounterOpts
 
 	counters = []prometheus.CounterOpts{
@@ -26,7 +32,7 @@ func (s *Sequencer) registerMetrics() {
 }
 
 func (s *Sequencer) batchesMetricAdd(value float64) {
-	if s.metrics == nil {
+	if !s.metricsEnabled {
 		return
 	}
 

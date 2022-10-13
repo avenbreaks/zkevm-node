@@ -21,6 +21,10 @@ const (
 	errInsufficientAllowance       = "insufficient allowance"
 )
 
+var (
+	nilInterface metricsInterface
+)
+
 // Sequencer represents a sequencer
 type Sequencer struct {
 	cfg Config
@@ -37,7 +41,8 @@ type Sequencer struct {
 
 	sequenceInProgress types.Sequence
 
-	metrics metricsInterface
+	metrics        metricsInterface
+	metricsEnabled bool
 }
 
 // New init sequencer
@@ -49,7 +54,8 @@ func New(
 	priceGetter priceGetter,
 	manager txManager,
 	gpe gasPriceEstimator,
-	metrics metricsInterface) (*Sequencer, error) {
+	metrics metricsInterface,
+	metricsEnabled bool) (*Sequencer, error) {
 	checker := profitabilitychecker.New(cfg.ProfitabilityChecker, etherman, priceGetter)
 
 	addr, err := etherman.TrustedSequencer()
@@ -59,15 +65,16 @@ func New(
 	// TODO: check that private key used in etherman matches addr
 
 	return &Sequencer{
-		cfg:       cfg,
-		pool:      txPool,
-		state:     state,
-		etherman:  etherman,
-		checker:   checker,
-		txManager: manager,
-		gpe:       gpe,
-		address:   addr,
-		metrics:   metrics,
+		cfg:            cfg,
+		pool:           txPool,
+		state:          state,
+		etherman:       etherman,
+		checker:        checker,
+		txManager:      manager,
+		gpe:            gpe,
+		address:        addr,
+		metrics:        metrics,
+		metricsEnabled: metricsEnabled,
 	}, nil
 }
 
@@ -77,7 +84,12 @@ func (s *Sequencer) Start(ctx context.Context) {
 		log.Infof("waiting for synchronizer to sync...")
 		time.Sleep(s.cfg.WaitPeriodPoolIsEmpty.Duration)
 	}
-	s.registerMetrics()
+
+	log.Warn("s.metrics: %#v", s.metrics)
+	if s.metricsEnabled {
+		s.registerMetrics()
+	}
+
 	// initialize sequence
 	batchNum, err := s.state.GetLastBatchNumber(ctx, nil)
 	for err != nil {
