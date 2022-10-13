@@ -25,6 +25,10 @@ const (
 )
 
 func (s *Server) registerMetrics() {
+	if s.metrics == nil {
+		return
+	}
+
 	var (
 		// gauges     map[string]prometheus.GaugeOpts
 		counterVecs []metrics.CounterVecOpts

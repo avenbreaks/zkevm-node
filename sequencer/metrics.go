@@ -10,6 +10,10 @@ const (
 )
 
 func (s *Sequencer) registerMetrics() {
+	if s.metrics == nil {
+		return
+	}
+
 	var counters []prometheus.CounterOpts
 
 	counters = []prometheus.CounterOpts{
