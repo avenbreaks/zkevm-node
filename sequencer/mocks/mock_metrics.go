@@ -14,9 +14,9 @@ type MetricsMock struct {
 	mock.Mock
 }
 
-// IncCounterVec provides a mock function with given fields: name, label
-func (_m *MetricsMock) IncCounterVec(name string, label string) {
-	_m.Called(name, label)
+// CounterAdd provides a mock function with given fields: name, value
+func (_m *MetricsMock) CounterAdd(name string, value float64) {
+	_m.Called(name, value)
 }
 
 // ObserveHistogram provides a mock function with given fields: name, start

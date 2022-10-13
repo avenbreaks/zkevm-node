@@ -3,6 +3,8 @@ package jsonrpc
 import (
 	"time"
 
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -15,21 +17,27 @@ const (
 	invalidRequestMetricLabel = metricRequestPrefix + "invalid"
 	singleRequestMetricLabel  = metricRequestPrefix + "single"
 	batchRequestMetricLabel   = metricRequestPrefix + "batch"
-	totalMetricLabel          = metricRequestPrefix + "total"
 )
 
 func (s *Server) registerMetrics() {
 	var (
 		// gauges     map[string]prometheus.GaugeOpts
-		counters   []prometheus.CounterOpts
-		histograms []prometheus.HistogramOpts
+		counterVecs []metrics.CounterVecOpts
+		histograms  []prometheus.HistogramOpts
 		// summaries  map[string]prometheus.SummaryOpts
 	)
 
-	counters = []prometheus.CounterOpts{
+	counterVecs = []metrics.CounterVecOpts{
 		{
-			Name: requestsMetricName,
-			Help: "JSONRPC number of requests received",
+			CounterOpts: prometheus.CounterOpts{
+				Name: requestsMetricName,
+				Help: "JSONRPC number of requests received",
+			},
+			Labels: []string{
+				invalidRequestMetricLabel,
+				singleRequestMetricLabel,
+				batchRequestMetricLabel,
+			},
 		},
 	}
 
@@ -44,7 +52,7 @@ func (s *Server) registerMetrics() {
 		},
 	}
 
-	s.metrics.RegisterCounters(counters...)
+	s.metrics.RegisterCounterVecs(counterVecs...)
 	s.metrics.RegisterHistograms(histograms...)
 }
 
@@ -53,8 +61,7 @@ func (s *Server) requestMetricInc(label string) {
 		return
 	}
 
-	s.metrics.IncCounterVec(requestsMetricName, label)
-	s.metrics.IncCounterVec(requestsMetricName, totalMetricLabel)
+	s.metrics.CounterVecInc(requestsMetricName, label)
 }
 
 func (s *Server) requestDurationMetric(start time.Time) {

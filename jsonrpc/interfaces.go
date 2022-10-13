@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
+
 	"github.com/0xPolygonHermez/zkevm-node/pool"
 	"github.com/0xPolygonHermez/zkevm-node/state"
 	"github.com/0xPolygonHermez/zkevm-node/state/runtime"
@@ -71,8 +73,8 @@ type storageInterface interface {
 
 // metricsInterface contains the methods required to interact with metrics.
 type metricsInterface interface {
-	RegisterCounters(opts ...prometheus.CounterOpts)
+	RegisterCounterVecs(opts ...metrics.CounterVecOpts)
 	RegisterHistograms(opts ...prometheus.HistogramOpts)
-	IncCounterVec(name string, label string)
+	CounterVecInc(name string, label string)
 	ObserveHistogram(name string, start time.Time)
 }

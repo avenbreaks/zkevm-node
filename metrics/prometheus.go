@@ -10,6 +10,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// CounterVecOpts holds options for the CounterVec type.
+type CounterVecOpts struct {
+	prometheus.CounterOpts
+	Labels []string
+}
+
 // Prometheus wrapper containing utility methods for registering and retrieving different metrics.
 type Prometheus struct {
 	mu          *sync.RWMutex
@@ -93,6 +99,16 @@ func (p *Prometheus) GetCounter(name string) (counter prometheus.Counter, exist 
 	return counter, exist
 }
 
+// CounterAdd increments the counter with the given name.
+func (p *Prometheus) CounterAdd(name string, value float64) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if c, ok := p.GetCounter(name); ok {
+		c.Add(value)
+	}
+}
+
 // UnregisterCounters unregisters the provided counter metrics from the Prometheus registerer.
 func (p *Prometheus) UnregisterCounters(names ...string) {
 	p.mu.Lock()
@@ -101,12 +117,6 @@ func (p *Prometheus) UnregisterCounters(names ...string) {
 	for _, name := range names {
 		p.unregisterCounterIfExists(name)
 	}
-}
-
-// CounterVecOpts holds options for the CounterVec type.
-type CounterVecOpts struct {
-	prometheus.CounterOpts
-	labels []string
 }
 
 // RegisterCounterVecs registers the provided counter vec metrics to the Prometheus registerer.
@@ -129,8 +139,11 @@ func (p *Prometheus) GetCounterVec(name string) (counterVec *prometheus.CounterV
 	return counterVec, exist
 }
 
-// IncCounterVec increments the counter vec with the given label.
-func (p *Prometheus) IncCounterVec(name string, label string) {
+// CounterVecInc increments the counter vec with the given name and label.
+func (p *Prometheus) CounterVecInc(name string, label string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
 	if cv, ok := p.GetCounterVec(name); ok {
 		cv.WithLabelValues(label).Inc()
 	}
@@ -305,7 +318,7 @@ func (p *Prometheus) registerCounterVecIfNotExists(opts CounterVecOpts) {
 	}
 
 	log.Infof("Creating Counter Vec Metric '%v' ...", opts.Name)
-	counterVec := prometheus.NewCounterVec(opts.CounterOpts, opts.labels)
+	counterVec := prometheus.NewCounterVec(opts.CounterOpts, opts.Labels)
 	log.Infof("Counter Vec Metric '%v' successfully created! Labels: %p", opts.Name, opts.ConstLabels)
 
 	log.Infof("Registering Counter Vec Metric '%v' ...", opts.Name)

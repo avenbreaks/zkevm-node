@@ -88,6 +88,6 @@ type gasPriceEstimator interface {
 type metricsInterface interface {
 	RegisterCounters(opts ...prometheus.CounterOpts)
 	RegisterHistograms(opts ...prometheus.HistogramOpts)
-	IncCounterVec(name string, label string)
+	CounterAdd(name string, value float64)
 	ObserveHistogram(name string, start time.Time)
 }

@@ -16,7 +16,7 @@ var (
 	counter        = prometheus.NewCounter(counterOpts)
 	counterVecName = "counterVecName"
 	counterVecOpts = CounterVecOpts{prometheus.CounterOpts{Name: counterVecName}, []string{}}
-	counterVec     = prometheus.NewCounterVec(counterVecOpts.CounterOpts, counterVecOpts.labels)
+	counterVec     = prometheus.NewCounterVec(counterVecOpts.CounterOpts, counterVecOpts.Labels)
 	histogramName  = "histogramName"
 	histogramOpts  = prometheus.HistogramOpts{Name: histogramName}
 	histogram      = prometheus.NewHistogram(histogramOpts)
@@ -87,6 +87,8 @@ func TestGetCounter(t *testing.T) {
 	assert.Equal(t, counter, actual)
 }
 
+// TODO: Add unit test for CounterInc
+
 func TestUnregisterCounters(t *testing.T) {
 	instance := newTestEnv()
 	instance.RegisterCounters(counterOpts)
@@ -114,6 +116,8 @@ func TestGetCounterVec(t *testing.T) {
 	assert.True(t, exist)
 	assert.Equal(t, counterVec, actual)
 }
+
+// TODO: Add unit test for CounterVecInc
 
 func TestUnregisterCounterVecs(t *testing.T) {
 	instance := newTestEnv()

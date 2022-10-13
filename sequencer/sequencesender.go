@@ -43,10 +43,13 @@ func (s *Sequencer) tryToSendSequence(ctx context.Context, ticker *time.Ticker) 
 	}
 
 	// Send sequences to L1
+	sequenceCount := len(sequences)
 	log.Infof(
 		"sending sequences to L1. From batch %d to batch %d",
-		lastVirtualBatchNum+1, lastVirtualBatchNum+uint64(len(sequences)),
+		lastVirtualBatchNum+1, lastVirtualBatchNum+uint64(sequenceCount),
 	)
+
+	s.batchesMetricAdd(float64(sequenceCount))
 	s.txManager.SequenceBatches(sequences)
 }
 
