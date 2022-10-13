@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/0xPolygonHermez/zkevm-node/metrics"
-
 	"github.com/0xPolygonHermez/zkevm-node/pool"
 	"github.com/0xPolygonHermez/zkevm-node/state"
 	"github.com/0xPolygonHermez/zkevm-node/state/runtime"

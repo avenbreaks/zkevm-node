@@ -16,7 +16,8 @@ type CounterVecOpts struct {
 	Labels []string
 }
 
-// Prometheus wrapper containing utility methods for registering and retrieving different metrics.
+// Prometheus wrapper containing utility methods for registering and retrieving
+// different metrics.
 type Prometheus struct {
 	mu          *sync.RWMutex
 	registerer  prometheus.Registerer
@@ -45,7 +46,8 @@ func (p *Prometheus) Handler() http.Handler {
 	return promhttp.Handler()
 }
 
-// RegisterGauges registers the provided gauge metrics to the Prometheus registerer.
+// RegisterGauges registers the provided gauge metrics to the Prometheus
+// registerer.
 func (p *Prometheus) RegisterGauges(opts ...prometheus.GaugeOpts) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -55,7 +57,8 @@ func (p *Prometheus) RegisterGauges(opts ...prometheus.GaugeOpts) {
 	}
 }
 
-// UnregisterGauges unregisters the provided gauge metrics from the Prometheus registerer.
+// UnregisterGauges unregisters the provided gauge metrics from the Prometheus
+// registerer.
 func (p *Prometheus) UnregisterGauges(names ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -77,7 +80,8 @@ func (p *Prometheus) GetGauge(name string) (gauge prometheus.Gauge, exist bool) 
 	return gauge, exist
 }
 
-// RegisterCounters registers the provided counter metrics to the Prometheus registerer.
+// RegisterCounters registers the provided counter metrics to the Prometheus
+// registerer.
 func (p *Prometheus) RegisterCounters(opts ...prometheus.CounterOpts) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -109,7 +113,8 @@ func (p *Prometheus) CounterAdd(name string, value float64) {
 	}
 }
 
-// UnregisterCounters unregisters the provided counter metrics from the Prometheus registerer.
+// UnregisterCounters unregisters the provided counter metrics from the
+// Prometheus registerer.
 func (p *Prometheus) UnregisterCounters(names ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -119,7 +124,8 @@ func (p *Prometheus) UnregisterCounters(names ...string) {
 	}
 }
 
-// RegisterCounterVecs registers the provided counter vec metrics to the Prometheus registerer.
+// RegisterCounterVecs registers the provided counter vec metrics to the
+// Prometheus registerer.
 func (p *Prometheus) RegisterCounterVecs(opts ...CounterVecOpts) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -149,7 +155,8 @@ func (p *Prometheus) CounterVecInc(name string, label string) {
 	}
 }
 
-// UnregisterCounterVecs unregisters the provided counter vec metrics from the Prometheus registerer.
+// UnregisterCounterVecs unregisters the provided counter vec metrics from the
+// Prometheus registerer.
 func (p *Prometheus) UnregisterCounterVecs(names ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -159,7 +166,8 @@ func (p *Prometheus) UnregisterCounterVecs(names ...string) {
 	}
 }
 
-// RegisterHistograms registers the provided histogram metrics to the Prometheus registerer.
+// RegisterHistograms registers the provided histogram metrics to the
+// Prometheus registerer.
 func (p *Prometheus) RegisterHistograms(opts ...prometheus.HistogramOpts) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -188,7 +196,8 @@ func (p *Prometheus) ObserveHistogram(name string, start time.Time) {
 	}
 }
 
-// UnregisterHistogram unregisters the provided histogram metrics from the Prometheus registerer.
+// UnregisterHistogram unregisters the provided histogram metrics from the
+// Prometheus registerer.
 func (p *Prometheus) UnregisterHistogram(names ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -198,7 +207,8 @@ func (p *Prometheus) UnregisterHistogram(names ...string) {
 	}
 }
 
-// RegisterSummaries registers the provided summary metrics to the Prometheus registerer.
+// RegisterSummaries registers the provided summary metrics to the Prometheus
+// registerer.
 func (p *Prometheus) RegisterSummaries(opts ...prometheus.SummaryOpts) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -220,7 +230,8 @@ func (p *Prometheus) GetSummary(name string) (summary prometheus.Summary, exist 
 	return summary, exist
 }
 
-// UnregisterSummaries unregisters the provided summary metrics from the Prometheus registerer.
+// UnregisterSummaries unregisters the provided summary metrics from the
+// Prometheus registerer.
 func (p *Prometheus) UnregisterSummaries(names ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()

@@ -196,7 +196,7 @@ func (s *Server) isSingleRequest(data []byte) (bool, rpcError) {
 }
 
 func (s *Server) handleSingleRequest(w http.ResponseWriter, data []byte) {
-	defer s.requestMetricInc(singleRequestMetricLabel)
+	defer s.requestMetricInc(requestMetricLabelSingle)
 	request, err := s.parseRequest(data)
 	if err != nil {
 		handleError(w, err)
@@ -219,7 +219,7 @@ func (s *Server) handleSingleRequest(w http.ResponseWriter, data []byte) {
 }
 
 func (s *Server) handleBatchRequest(w http.ResponseWriter, data []byte) {
-	defer s.requestMetricInc(batchRequestMetricLabel)
+	defer s.requestMetricInc(requestMetricLabelBatch)
 	requests, err := s.parseRequests(data)
 	if err != nil {
 		handleError(w, err)
@@ -261,7 +261,7 @@ func (s *Server) parseRequests(data []byte) ([]Request, error) {
 }
 
 func (s *Server) handleInvalidRequest(w http.ResponseWriter, err error) {
-	defer s.requestMetricInc(invalidRequestMetricLabel)
+	defer s.requestMetricInc(requestMetricLabelInvalid)
 	handleError(w, err)
 }
 

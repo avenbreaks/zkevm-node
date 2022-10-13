@@ -10,14 +10,12 @@ const (
 )
 
 func (s *Sequencer) registerMetrics() {
-	var (
-		counters []prometheus.CounterOpts
-	)
+	var counters []prometheus.CounterOpts
 
 	counters = []prometheus.CounterOpts{
 		{
 			Name: batchesTotalCountMetricName,
-			Help: "Total batches processed",
+			Help: "SEQUENCER total batches processed",
 		},
 	}
 	s.metrics.RegisterCounters(counters...)

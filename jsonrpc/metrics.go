@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/0xPolygonHermez/zkevm-node/metrics"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -14,9 +13,15 @@ const (
 	requestsMetricName  = metricRequestPrefix + "counter"
 	requestDurationName = metricRequestPrefix + "duration"
 
-	invalidRequestMetricLabel = metricRequestPrefix + "invalid"
-	singleRequestMetricLabel  = metricRequestPrefix + "single"
-	batchRequestMetricLabel   = metricRequestPrefix + "batch"
+	requestMetricLabelName = metricRequestPrefix + "status"
+)
+
+type requestMetricLabel string
+
+const (
+	requestMetricLabelInvalid requestMetricLabel = "invalid"
+	requestMetricLabelSingle                     = "single"
+	requestMetricLabelBatch                      = "batch"
 )
 
 func (s *Server) registerMetrics() {
@@ -33,11 +38,7 @@ func (s *Server) registerMetrics() {
 				Name: requestsMetricName,
 				Help: "JSONRPC number of requests received",
 			},
-			Labels: []string{
-				invalidRequestMetricLabel,
-				singleRequestMetricLabel,
-				batchRequestMetricLabel,
-			},
+			Labels: []string{requestMetricLabelName},
 		},
 	}
 
@@ -56,12 +57,12 @@ func (s *Server) registerMetrics() {
 	s.metrics.RegisterHistograms(histograms...)
 }
 
-func (s *Server) requestMetricInc(label string) {
+func (s *Server) requestMetricInc(label requestMetricLabel) {
 	if s.metrics == nil {
 		return
 	}
 
-	s.metrics.CounterVecInc(requestsMetricName, label)
+	s.metrics.CounterVecInc(requestsMetricName, string(label))
 }
 
 func (s *Server) requestDurationMetric(start time.Time) {
