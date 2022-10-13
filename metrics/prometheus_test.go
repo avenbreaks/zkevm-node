@@ -53,7 +53,7 @@ func TestGetGauge(t *testing.T) {
 	instance := newTestEnv()
 	instance.gauges[gaugeName] = gauge
 
-	actual, exist := instance.GetGauge(gaugeName)
+	actual, exist := instance.Gauge(gaugeName)
 
 	assert.True(t, exist)
 	assert.Equal(t, gauge, actual)
@@ -81,7 +81,7 @@ func TestGetCounter(t *testing.T) {
 	instance := newTestEnv()
 	instance.counters[counterName] = counter
 
-	actual, exist := instance.GetCounter(counterName)
+	actual, exist := instance.Counter(counterName)
 
 	assert.True(t, exist)
 	assert.Equal(t, counter, actual)
@@ -111,7 +111,7 @@ func TestGetCounterVec(t *testing.T) {
 	instance := newTestEnv()
 	instance.counterVecs[counterVecName] = counterVec
 
-	actual, exist := instance.GetCounterVec(counterVecName)
+	actual, exist := instance.CounterVec(counterVecName)
 
 	assert.True(t, exist)
 	assert.Equal(t, counterVec, actual)
@@ -141,7 +141,7 @@ func TestGetHistogram(t *testing.T) {
 	instance := newTestEnv()
 	instance.histograms[histogramName] = histogram
 
-	actual, exist := instance.GetHistogram(histogramName)
+	actual, exist := instance.Histogram(histogramName)
 
 	assert.True(t, exist)
 	assert.Equal(t, histogram, actual)
@@ -169,7 +169,7 @@ func TestGetSummary(t *testing.T) {
 	instance := newTestEnv()
 	instance.summaries[summaryName] = summary
 
-	actual, exist := instance.GetSummary(summaryName)
+	actual, exist := instance.Summary(summaryName)
 
 	assert.True(t, exist)
 	assert.Equal(t, summary, actual)

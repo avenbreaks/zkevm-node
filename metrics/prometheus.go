@@ -68,8 +68,8 @@ func (p *Prometheus) UnregisterGauges(names ...string) {
 	}
 }
 
-// GetGauge retrieves gauge metric by name
-func (p *Prometheus) GetGauge(name string) (gauge prometheus.Gauge, exist bool) {
+// Gauge retrieves gauge metric by name
+func (p *Prometheus) Gauge(name string) (gauge prometheus.Gauge, exist bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -91,8 +91,8 @@ func (p *Prometheus) RegisterCounters(opts ...prometheus.CounterOpts) {
 	}
 }
 
-// GetCounter retrieves counter metric by name
-func (p *Prometheus) GetCounter(name string) (counter prometheus.Counter, exist bool) {
+// Counter retrieves counter metric by name
+func (p *Prometheus) Counter(name string) (counter prometheus.Counter, exist bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -108,7 +108,7 @@ func (p *Prometheus) CounterAdd(name string, value float64) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if c, ok := p.GetCounter(name); ok {
+	if c, ok := p.Counter(name); ok {
 		c.Add(value)
 	}
 }
@@ -135,8 +135,8 @@ func (p *Prometheus) RegisterCounterVecs(opts ...CounterVecOpts) {
 	}
 }
 
-// GetCounterVec retrieves counter ver metric by name
-func (p *Prometheus) GetCounterVec(name string) (counterVec *prometheus.CounterVec, exist bool) {
+// CounterVec retrieves counter ver metric by name
+func (p *Prometheus) CounterVec(name string) (counterVec *prometheus.CounterVec, exist bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -150,7 +150,7 @@ func (p *Prometheus) CounterVecInc(name string, label string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if cv, ok := p.GetCounterVec(name); ok {
+	if cv, ok := p.CounterVec(name); ok {
 		cv.WithLabelValues(label).Inc()
 	}
 }
@@ -177,8 +177,8 @@ func (p *Prometheus) RegisterHistograms(opts ...prometheus.HistogramOpts) {
 	}
 }
 
-// GetHistogram retrieves histogram metric by name
-func (p *Prometheus) GetHistogram(name string) (histogram prometheus.Histogram, exist bool) {
+// Histogram retrieves histogram metric by name
+func (p *Prometheus) Histogram(name string) (histogram prometheus.Histogram, exist bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -191,7 +191,7 @@ func (p *Prometheus) GetHistogram(name string) (histogram prometheus.Histogram, 
 
 // ObserveHistogram observes the histogram from the given start time.
 func (p *Prometheus) ObserveHistogram(name string, start time.Time) {
-	if histo, ok := p.GetHistogram(name); ok {
+	if histo, ok := p.Histogram(name); ok {
 		histo.Observe(time.Since(start).Seconds())
 	}
 }
@@ -218,8 +218,8 @@ func (p *Prometheus) RegisterSummaries(opts ...prometheus.SummaryOpts) {
 	}
 }
 
-// GetSummary retrieves summary metric by name
-func (p *Prometheus) GetSummary(name string) (summary prometheus.Summary, exist bool) {
+// Summary retrieves summary metric by name
+func (p *Prometheus) Summary(name string) (summary prometheus.Summary, exist bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 

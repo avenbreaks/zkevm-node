@@ -13,7 +13,7 @@ const (
 	requestsMetricName  = metricRequestPrefix + "counter"
 	requestDurationName = metricRequestPrefix + "duration"
 
-	requestMetricLabelName = metricRequestPrefix + "status"
+	requestMetricLabelName = "status"
 )
 
 type requestMetricLabel string
