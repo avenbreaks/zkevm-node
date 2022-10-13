@@ -10,19 +10,11 @@ const (
 )
 
 func (s *Sequencer) registerMetrics() {
-<<<<<<< Updated upstream
-	if s.metrics == nil {
-		return
-	}
-
-=======
 	if !s.metricsEnabled {
 		return
 	}
->>>>>>> Stashed changes
-	var counters []prometheus.CounterOpts
 
-	counters = []prometheus.CounterOpts{
+	counters := []prometheus.CounterOpts{
 		{
 			Name: sequenceTotalCountMetricName,
 			Help: "SEQUENCER total sequence processed",

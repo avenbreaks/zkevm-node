@@ -20,16 +20,12 @@ type requestMetricLabel string
 
 const (
 	requestMetricLabelInvalid requestMetricLabel = "invalid"
-	requestMetricLabelSingle                     = "single"
-	requestMetricLabelBatch                      = "batch"
+	requestMetricLabelSingle  requestMetricLabel = "single"
+	requestMetricLabelBatch   requestMetricLabel = "batch"
 )
 
 func (s *Server) registerMetrics() {
-<<<<<<< Updated upstream
-	if s.metrics == nil {
-=======
 	if !s.metricsEnabled {
->>>>>>> Stashed changes
 		return
 	}
 

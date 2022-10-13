@@ -21,10 +21,6 @@ const (
 	errInsufficientAllowance       = "insufficient allowance"
 )
 
-var (
-	nilInterface metricsInterface
-)
-
 // Sequencer represents a sequencer
 type Sequencer struct {
 	cfg Config

@@ -30,10 +30,6 @@ const (
 	APIWeb3 = "web3"
 )
 
-var (
-	nilMetrics metricsInterface
-)
-
 // Server is an API backend to handle RPC requests
 type Server struct {
 	config         Config
