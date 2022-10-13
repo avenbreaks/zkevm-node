@@ -269,7 +269,7 @@ func Test_Defaults(t *testing.T) {
 		},
 		{
 			path:          "Metrics.Port",
-			expectedValue: 9001,
+			expectedValue: 9091,
 		},
 		{
 			path:          "Metrics.Enabled",

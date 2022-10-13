@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	metricPrefix                = "sequencer_"
-	batchesTotalCountMetricName = metricPrefix + "batch"
+	metricPrefix                 = "sequencer_"
+	sequenceTotalCountMetricName = metricPrefix + "sequence"
 )
 
 func (s *Sequencer) registerMetrics() {
@@ -14,8 +14,8 @@ func (s *Sequencer) registerMetrics() {
 
 	counters = []prometheus.CounterOpts{
 		{
-			Name: batchesTotalCountMetricName,
-			Help: "SEQUENCER total batches processed",
+			Name: sequenceTotalCountMetricName,
+			Help: "SEQUENCER total sequence processed",
 		},
 	}
 	s.metrics.RegisterCounters(counters...)
@@ -26,5 +26,5 @@ func (s *Sequencer) batchesMetricAdd(value float64) {
 		return
 	}
 
-	s.metrics.CounterAdd(batchesTotalCountMetricName, value)
+	s.metrics.CounterAdd(sequenceTotalCountMetricName, value)
 }

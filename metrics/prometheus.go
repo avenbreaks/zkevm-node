@@ -323,7 +323,7 @@ func (p *Prometheus) unregisterCounterIfExists(name string) {
 
 // registerCounterVecIfNotExists registers single counter vec metric if not exists
 func (p *Prometheus) registerCounterVecIfNotExists(opts CounterVecOpts) {
-	if _, exist := p.counters[opts.Name]; exist {
+	if _, exist := p.counterVecs[opts.Name]; exist {
 		log.Warnf("Counter vec metric '%v' already exists.", opts.Name)
 		return
 	}
