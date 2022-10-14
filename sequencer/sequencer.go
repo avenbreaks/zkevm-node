@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"time"
 
 	"github.com/0xPolygonHermez/zkevm-node/etherman/types"
@@ -23,22 +24,16 @@ const (
 
 // Sequencer represents a sequencer
 type Sequencer struct {
-	cfg Config
-
-	pool      txPool
-	state     stateInterface
-	txManager txManager
-	etherman  etherman
-	checker   *profitabilitychecker.Checker
-	gpe       gasPriceEstimator
-
-	address          common.Address
-	isSequenceTooBig bool
-
+	cfg                Config
+	pool               txPool
+	state              stateInterface
+	txManager          txManager
+	etherman           etherman
+	checker            *profitabilitychecker.Checker
+	gpe                gasPriceEstimator
+	address            common.Address
+	isSequenceTooBig   bool
 	sequenceInProgress types.Sequence
-
-	metrics        metricsInterface
-	metricsEnabled bool
 }
 
 // New init sequencer
@@ -49,9 +44,7 @@ func New(
 	etherman etherman,
 	priceGetter priceGetter,
 	manager txManager,
-	gpe gasPriceEstimator,
-	metrics metricsInterface,
-	metricsEnabled bool) (*Sequencer, error) {
+	gpe gasPriceEstimator) (*Sequencer, error) {
 	checker := profitabilitychecker.New(cfg.ProfitabilityChecker, etherman, priceGetter)
 
 	addr, err := etherman.TrustedSequencer()
@@ -61,16 +54,14 @@ func New(
 	// TODO: check that private key used in etherman matches addr
 
 	return &Sequencer{
-		cfg:            cfg,
-		pool:           txPool,
-		state:          state,
-		etherman:       etherman,
-		checker:        checker,
-		txManager:      manager,
-		gpe:            gpe,
-		address:        addr,
-		metrics:        metrics,
-		metricsEnabled: metricsEnabled,
+		cfg:       cfg,
+		pool:      txPool,
+		state:     state,
+		etherman:  etherman,
+		checker:   checker,
+		txManager: manager,
+		gpe:       gpe,
+		address:   addr,
 	}, nil
 }
 
@@ -81,10 +72,8 @@ func (s *Sequencer) Start(ctx context.Context) {
 		time.Sleep(s.cfg.WaitPeriodPoolIsEmpty.Duration)
 	}
 
-	log.Warn("s.metrics: %#v", s.metrics)
-	if s.metricsEnabled {
-		s.registerMetrics()
-	}
+	// Registered only if metrics are enabled
+	registerMetrics()
 
 	// initialize sequence
 	batchNum, err := s.state.GetLastBatchNumber(ctx, nil)
@@ -166,6 +155,9 @@ func (s *Sequencer) isSynced(ctx context.Context) bool {
 		log.Infof("waiting for the state to be synced, lastSyncedBatchNum: %d, lastEthBatchNum: %d", lastSyncedBatchNum, lastEthBatchNum)
 		return false
 	}
+
+	metrics.GaugeSet(metricBatchesLastNumberName, float64(lastSyncedBatchNum))
+
 	return true
 }
 

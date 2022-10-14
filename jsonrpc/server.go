@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -32,11 +33,9 @@ const (
 
 // Server is an API backend to handle RPC requests
 type Server struct {
-	config         Config
-	handler        *Handler
-	srv            *http.Server
-	metrics        metricsInterface
-	metricsEnabled bool
+	config  Config
+	handler *Handler
+	srv     *http.Server
 }
 
 // NewServer returns the JsonRPC server
@@ -47,8 +46,6 @@ func NewServer(
 	gpe gasPriceEstimator,
 	storage storageInterface,
 	apis map[string]bool,
-	metrics metricsInterface,
-	metricsEnabled bool,
 ) *Server {
 	handler := newJSONRpcHandler()
 
@@ -83,10 +80,8 @@ func NewServer(
 	}
 
 	srv := &Server{
-		config:         cfg,
-		handler:        handler,
-		metrics:        metrics,
-		metricsEnabled: metricsEnabled,
+		config:  cfg,
+		handler: handler,
 	}
 	return srv
 }
@@ -111,16 +106,8 @@ func (s *Server) Start() error {
 	lmt := tollbooth.NewLimiter(s.config.MaxRequestsPerIPAndSecond, nil)
 	mux.Handle("/", tollbooth.LimitFuncHandler(lmt, s.handle))
 
-	if s.metricsEnabled {
-		s.registerMetrics()
-		log.Warn("$$$$$ Incrementing Invalid Request")
-		s.requestMetricInc(requestMetricLabelInvalid)
-		s.requestMetricInc(requestMetricLabelInvalid)
-		s.requestMetricInc(requestMetricLabelBatch)
-		s.requestMetricInc(requestMetricLabelBatch)
-		s.requestMetricInc(requestMetricLabelSingle)
-		s.requestMetricInc(requestMetricLabelSingle)
-	}
+	// Registered only if metrics are enabled
+	registerMetrics()
 
 	s.srv = &http.Server{
 		Handler: mux,
@@ -199,7 +186,7 @@ func (s *Server) handle(w http.ResponseWriter, req *http.Request) {
 	} else {
 		s.handleBatchRequest(w, data)
 	}
-	s.requestDurationMetric(start)
+	metrics.HistogramObserve(requestDurationName, start)
 }
 
 func (s *Server) isSingleRequest(data []byte) (bool, rpcError) {
@@ -213,7 +200,7 @@ func (s *Server) isSingleRequest(data []byte) (bool, rpcError) {
 }
 
 func (s *Server) handleSingleRequest(w http.ResponseWriter, data []byte) {
-	defer s.requestMetricInc(requestMetricLabelSingle)
+	defer metricRequestInc(requestMetricLabelSingle)
 	request, err := s.parseRequest(data)
 	if err != nil {
 		handleError(w, err)
@@ -236,7 +223,7 @@ func (s *Server) handleSingleRequest(w http.ResponseWriter, data []byte) {
 }
 
 func (s *Server) handleBatchRequest(w http.ResponseWriter, data []byte) {
-	defer s.requestMetricInc(requestMetricLabelBatch)
+	defer metricRequestInc(requestMetricLabelBatch)
 	requests, err := s.parseRequests(data)
 	if err != nil {
 		handleError(w, err)
@@ -278,7 +265,7 @@ func (s *Server) parseRequests(data []byte) ([]Request, error) {
 }
 
 func (s *Server) handleInvalidRequest(w http.ResponseWriter, err error) {
-	defer s.requestMetricInc(requestMetricLabelInvalid)
+	defer metricRequestInc(requestMetricLabelInvalid)
 	handleError(w, err)
 }
 

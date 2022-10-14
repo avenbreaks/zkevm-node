@@ -1,32 +1,41 @@
 package sequencer
 
 import (
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
-	metricPrefix                 = "sequencer_"
-	sequenceTotalCountMetricName = metricPrefix + "sequence"
+	metricPrefix                       = "sequencer_"
+	metricBatchesLastNumberName        = metricPrefix + "batches_last_number"
+	metricSequencesSentToL1CountName   = metricPrefix + "sequences_sent_to_L1_count"
+	metricGasPriceEstimatedAverageName = metricPrefix + "gas_price_estimated_average"
 )
 
-func (s *Sequencer) registerMetrics() {
-	if !s.metricsEnabled {
-		return
-	}
+func registerMetrics() {
+	var (
+		counters []prometheus.CounterOpts
+		gauges   []prometheus.GaugeOpts
+	)
 
-	counters := []prometheus.CounterOpts{
+	counters = []prometheus.CounterOpts{
 		{
-			Name: sequenceTotalCountMetricName,
-			Help: "SEQUENCER total sequence processed",
+			Name: metricSequencesSentToL1CountName,
+			Help: "SEQUENCER total count of sequences sent to L1",
 		},
 	}
-	s.metrics.RegisterCounters(counters...)
-}
 
-func (s *Sequencer) batchesMetricAdd(value float64) {
-	if !s.metricsEnabled {
-		return
+	gauges = []prometheus.GaugeOpts{
+		{
+			Name: metricBatchesLastNumberName,
+			Help: "SEQUENCER last batch number processed",
+		},
+		{
+			Name: metricGasPriceEstimatedAverageName,
+			Help: "SEQUENCER average gas price estimated",
+		},
 	}
 
-	s.metrics.CounterAdd(sequenceTotalCountMetricName, value)
+	metrics.RegisterCounters(counters...)
+	metrics.RegisterGauges(gauges...)
 }

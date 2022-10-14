@@ -25,63 +25,57 @@ var (
 	summary        = prometheus.NewSummary(summaryOpts)
 )
 
-func newTestEnv() *Prometheus {
-	p := NewPrometheus()
+func TestMain(m *testing.M) {
+	Initialize(true)
 	// Overriding registerer to be able to do the unit tests independently
-	p.registerer = prometheus.NewRegistry()
-	return p
+	registerer = prometheus.NewRegistry()
+	m.Run()
+	initialized = false
 }
 
 func TestHandler(t *testing.T) {
-	instance := newTestEnv()
-
-	actual := instance.Handler()
+	actual := Handler()
 
 	assert.NotNil(t, actual)
 }
 
 func TestRegisterGauges(t *testing.T) {
-	instance := newTestEnv()
 	gaugesOpts := []prometheus.GaugeOpts{gaugeOpts}
 
-	instance.RegisterGauges(gaugesOpts...)
+	RegisterGauges(gaugesOpts...)
 
-	assert.Len(t, instance.gauges, 1)
+	assert.Len(t, gauges, 1)
 }
 
 func TestGetGauge(t *testing.T) {
-	instance := newTestEnv()
-	instance.gauges[gaugeName] = gauge
+	gauges[gaugeName] = gauge
 
-	actual, exist := instance.Gauge(gaugeName)
+	actual, exist := Gauge(gaugeName)
 
 	assert.True(t, exist)
 	assert.Equal(t, gauge, actual)
 }
 
 func TestUnregisterGauges(t *testing.T) {
-	instance := newTestEnv()
-	instance.RegisterGauges(gaugeOpts)
+	RegisterGauges(gaugeOpts)
 
-	instance.UnregisterGauges(gaugeName)
+	UnregisterGauges(gaugeName)
 
-	assert.Len(t, instance.gauges, 0)
+	assert.Len(t, gauges, 0)
 }
 
 func TestRegisterCounters(t *testing.T) {
-	instance := newTestEnv()
 	countersOpts := []prometheus.CounterOpts{counterOpts}
 
-	instance.RegisterCounters(countersOpts...)
+	RegisterCounters(countersOpts...)
 
-	assert.Len(t, instance.counters, 1)
+	assert.Len(t, counters, 1)
 }
 
 func TestGetCounter(t *testing.T) {
-	instance := newTestEnv()
-	instance.counters[counterName] = counter
+	counters[counterName] = counter
 
-	actual, exist := instance.Counter(counterName)
+	actual, exist := Counter(counterName)
 
 	assert.True(t, exist)
 	assert.Equal(t, counter, actual)
@@ -90,28 +84,25 @@ func TestGetCounter(t *testing.T) {
 // TODO: Add unit test for CounterInc
 
 func TestUnregisterCounters(t *testing.T) {
-	instance := newTestEnv()
-	instance.RegisterCounters(counterOpts)
+	RegisterCounters(counterOpts)
 
-	instance.UnregisterCounters(counterName)
+	UnregisterCounters(counterName)
 
-	assert.Len(t, instance.counters, 0)
+	assert.Len(t, counters, 0)
 }
 
 func TestRegisterCounterVecs(t *testing.T) {
-	instance := newTestEnv()
 	counterVecsOpts := []CounterVecOpts{counterVecOpts}
 
-	instance.RegisterCounterVecs(counterVecsOpts...)
+	RegisterCounterVecs(counterVecsOpts...)
 
-	assert.Len(t, instance.counterVecs, 1)
+	assert.Len(t, counterVecs, 1)
 }
 
 func TestGetCounterVec(t *testing.T) {
-	instance := newTestEnv()
-	instance.counterVecs[counterVecName] = counterVec
+	counterVecs[counterVecName] = counterVec
 
-	actual, exist := instance.CounterVec(counterVecName)
+	actual, exist := CounterVec(counterVecName)
 
 	assert.True(t, exist)
 	assert.Equal(t, counterVec, actual)
@@ -120,66 +111,60 @@ func TestGetCounterVec(t *testing.T) {
 // TODO: Add unit test for CounterVecInc
 
 func TestUnregisterCounterVecs(t *testing.T) {
-	instance := newTestEnv()
-	instance.RegisterCounterVecs(counterVecOpts)
+	RegisterCounterVecs(counterVecOpts)
 
-	instance.UnregisterCounterVecs(counterVecName)
+	UnregisterCounterVecs(counterVecName)
 
-	assert.Len(t, instance.counterVecs, 0)
+	assert.Len(t, counterVecs, 0)
 }
 
 func TestRegisterHistograms(t *testing.T) {
-	instance := newTestEnv()
 	histogramsOpts := []prometheus.HistogramOpts{histogramOpts}
 
-	instance.RegisterHistograms(histogramsOpts...)
+	RegisterHistograms(histogramsOpts...)
 
-	assert.Len(t, instance.histograms, 1)
+	assert.Len(t, histograms, 1)
 }
 
 func TestGetHistogram(t *testing.T) {
-	instance := newTestEnv()
-	instance.histograms[histogramName] = histogram
+	histograms[histogramName] = histogram
 
-	actual, exist := instance.Histogram(histogramName)
+	actual, exist := Histogram(histogramName)
 
 	assert.True(t, exist)
 	assert.Equal(t, histogram, actual)
 }
 
 func TestUnregisterHistograms(t *testing.T) {
-	instance := newTestEnv()
-	instance.RegisterHistograms(histogramOpts)
+	RegisterHistograms(histogramOpts)
 
-	instance.UnregisterHistogram(histogramName)
+	UnregisterHistogram(histogramName)
 
-	assert.Len(t, instance.histograms, 0)
+	assert.Len(t, histograms, 0)
 }
 
 func TestRegisterSummaries(t *testing.T) {
-	instance := newTestEnv()
+
 	summariesOpts := []prometheus.SummaryOpts{summaryOpts}
 
-	instance.RegisterSummaries(summariesOpts...)
+	RegisterSummaries(summariesOpts...)
 
-	assert.Len(t, instance.summaries, 1)
+	assert.Len(t, summaries, 1)
 }
 
 func TestGetSummary(t *testing.T) {
-	instance := newTestEnv()
-	instance.summaries[summaryName] = summary
+	summaries[summaryName] = summary
 
-	actual, exist := instance.Summary(summaryName)
+	actual, exist := Summary(summaryName)
 
 	assert.True(t, exist)
 	assert.Equal(t, summary, actual)
 }
 
 func TestUnregisterSummaries(t *testing.T) {
-	instance := newTestEnv()
-	instance.RegisterSummaries(summaryOpts)
+	RegisterSummaries(summaryOpts)
 
-	instance.UnregisterSummaries(summaryName)
+	UnregisterSummaries(summaryName)
 
-	assert.Len(t, instance.summaries, 0)
+	assert.Len(t, summaries, 0)
 }

@@ -55,7 +55,6 @@ func start(cliCtx *cli.Context) error {
 		grpcClientConns []*grpc.ClientConn
 		cancelFuncs     []context.CancelFunc
 		etherman        *etherman.Client
-		prometheus      *metrics.Prometheus
 	)
 
 	etherman, err = newEtherman(*c)
@@ -66,7 +65,13 @@ func start(cliCtx *cli.Context) error {
 	l2ChainID, err := etherman.GetL2ChainID()
 	if err != nil {
 		log.Fatal(err)
+
 	}
+
+	if c.Metrics.Enabled {
+		metrics.Initialize()
+	}
+
 	c.Aggregator.ChainID = l2ChainID
 	c.RPC.ChainID = l2ChainID
 	log.Infof("Chain ID read from POE SC = %v", l2ChainID)
@@ -86,7 +91,7 @@ func start(cliCtx *cli.Context) error {
 			log.Info("Running sequencer")
 			poolInstance := createPool(c.PoolDB, c.NetworkConfig.L2BridgeAddr, l2ChainID, st)
 			gpe := createGasPriceEstimator(c.GasPriceEstimator, st, poolInstance)
-			seq := createSequencer(*c, poolInstance, st, etherman, ethTxManager, gpe, prometheus, c.Metrics.Enabled)
+			seq := createSequencer(*c, poolInstance, st, etherman, ethTxManager, gpe)
 			go seq.Start(ctx)
 		case RPC:
 			log.Info("Running JSON-RPC server")
@@ -97,7 +102,7 @@ func start(cliCtx *cli.Context) error {
 			for _, a := range cliCtx.StringSlice(config.FlagHTTPAPI) {
 				apis[a] = true
 			}
-			go runJSONRPCServer(*c, poolInstance, st, gpe, apis, prometheus, c.Metrics.Enabled)
+			go runJSONRPCServer(*c, poolInstance, st, gpe, apis)
 		case SYNCHRONIZER:
 			log.Info("Running synchronizer")
 			go runSynchronizer(*c, etherman, st)
@@ -161,7 +166,7 @@ func runSynchronizer(cfg config.Config, etherman *etherman.Client, st *state.Sta
 	}
 }
 
-func runJSONRPCServer(c config.Config, pool *pool.Pool, st *state.State, gpe gasPriceEstimator, apis map[string]bool, prometheus *metrics.Prometheus, metricsEnabled bool) {
+func runJSONRPCServer(c config.Config, pool *pool.Pool, st *state.State, gpe gasPriceEstimator, apis map[string]bool) {
 	storage, err := jsonrpc.NewPostgresStorage(c.RPC.DB)
 	if err != nil {
 		log.Fatal(err)
@@ -169,19 +174,19 @@ func runJSONRPCServer(c config.Config, pool *pool.Pool, st *state.State, gpe gas
 
 	c.RPC.MaxCumulativeGasUsed = c.Sequencer.MaxCumulativeGasUsed
 
-	if err := jsonrpc.NewServer(c.RPC, pool, st, gpe, storage, apis, prometheus, metricsEnabled).Start(); err != nil {
+	if err := jsonrpc.NewServer(c.RPC, pool, st, gpe, storage, apis).Start(); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func createSequencer(c config.Config, pool *pool.Pool, state *state.State, etherman *etherman.Client,
-	ethTxManager *ethtxmanager.Client, gpe gasPriceEstimator, prometheus *metrics.Prometheus, metricsEnabled bool) *sequencer.Sequencer {
+	ethTxManager *ethtxmanager.Client, gpe gasPriceEstimator) *sequencer.Sequencer {
 	pg, err := pricegetter.NewClient(c.PriceGetter)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	seq, err := sequencer.New(c.Sequencer, pool, state, etherman, pg, ethTxManager, gpe, prometheus, metricsEnabled)
+	seq, err := sequencer.New(c.Sequencer, pool, state, etherman, pg, ethTxManager, gpe)
 	if err != nil {
 		log.Fatal(err)
 	}

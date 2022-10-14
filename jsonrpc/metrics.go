@@ -1,8 +1,6 @@
 package jsonrpc
 
 import (
-	"time"
-
 	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -24,10 +22,7 @@ const (
 	requestMetricLabelBatch   requestMetricLabel = "batch"
 )
 
-func (s *Server) registerMetrics() {
-	if !s.metricsEnabled {
-		return
-	}
+func registerMetrics() {
 
 	var (
 		counterVecs []metrics.CounterVecOpts
@@ -55,22 +50,10 @@ func (s *Server) registerMetrics() {
 		},
 	}
 
-	s.metrics.RegisterCounterVecs(counterVecs...)
-	s.metrics.RegisterHistograms(histograms...)
+	metrics.RegisterCounterVecs(counterVecs...)
+	metrics.RegisterHistograms(histograms...)
 }
 
-func (s *Server) requestMetricInc(label requestMetricLabel) {
-	if !s.metricsEnabled {
-		return
-	}
-
-	s.metrics.CounterVecInc(requestsMetricName, string(label))
-}
-
-func (s *Server) requestDurationMetric(start time.Time) {
-	if !s.metricsEnabled {
-		return
-	}
-
-	s.metrics.HistogramObserve(requestDurationName, start)
+func metricRequestInc(label requestMetricLabel) {
+	metrics.CounterVecInc(requestsMetricName, string(label))
 }

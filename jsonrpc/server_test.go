@@ -2,7 +2,6 @@ package jsonrpc
 
 import (
 	"fmt"
-	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"net/http"
 	"testing"
 	"time"
@@ -14,7 +13,6 @@ import (
 const (
 	host                      = "localhost"
 	maxRequestsPerIPAndSecond = 1000
-	metricsEnabled            = false
 )
 
 type mockedServer struct {
@@ -29,7 +27,6 @@ type mocks struct {
 	GasPriceEstimator *gasPriceEstimatorMock
 	Storage           *storageMock
 	DbTx              *dbTxMock
-	Metrics           *metricsMock
 }
 
 func TestServerMetrics(t *testing.T) {
@@ -45,7 +42,7 @@ func TestServerMetrics(t *testing.T) {
 		APITxPool: true,
 		APIWeb3:   true,
 	}
-	s := NewServer(getDefaultConfig(), pool, state, gasPriceEstimator, storage, apis, metrics.NewPrometheus(), true)
+	s := NewServer(getDefaultConfig(), pool, state, gasPriceEstimator, storage, apis)
 	err := s.Start()
 	if err != nil {
 		panic(err)
@@ -58,7 +55,6 @@ func newMockedServer(t *testing.T, cfg Config) (*mockedServer, *mocks, *ethclien
 	gasPriceEstimator := newGasPriceEstimatorMock(t)
 	storage := newStorageMock(t)
 	dbTx := newDbTxMock(t)
-	metrics := newMetricsMock(t)
 	apis := map[string]bool{
 		APIEth:    true,
 		APINet:    true,
@@ -68,7 +64,7 @@ func newMockedServer(t *testing.T, cfg Config) (*mockedServer, *mocks, *ethclien
 		APIWeb3:   true,
 	}
 
-	server := NewServer(cfg, pool, state, gasPriceEstimator, storage, apis, metrics, metricsEnabled)
+	server := NewServer(cfg, pool, state, gasPriceEstimator, storage, apis)
 
 	go func() {
 		err := server.Start()
@@ -103,7 +99,6 @@ func newMockedServer(t *testing.T, cfg Config) (*mockedServer, *mocks, *ethclien
 		GasPriceEstimator: gasPriceEstimator,
 		Storage:           storage,
 		DbTx:              dbTx,
-		Metrics:           metrics,
 	}
 
 	return msv, mks, ethClient
