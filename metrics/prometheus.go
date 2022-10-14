@@ -105,9 +105,6 @@ func (p *Prometheus) Counter(name string) (counter prometheus.Counter, exist boo
 
 // CounterAdd increments the counter with the given name.
 func (p *Prometheus) CounterAdd(name string, value float64) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	if c, ok := p.Counter(name); ok {
 		c.Add(value)
 	}
@@ -147,9 +144,6 @@ func (p *Prometheus) CounterVec(name string) (counterVec *prometheus.CounterVec,
 
 // CounterVecInc increments the counter vec with the given name and label.
 func (p *Prometheus) CounterVecInc(name string, label string) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	if cv, ok := p.CounterVec(name); ok {
 		cv.WithLabelValues(label).Inc()
 	}
@@ -189,8 +183,8 @@ func (p *Prometheus) Histogram(name string) (histogram prometheus.Histogram, exi
 	return histogram, exist
 }
 
-// ObserveHistogram observes the histogram from the given start time.
-func (p *Prometheus) ObserveHistogram(name string, start time.Time) {
+// HistogramObserve observes the histogram from the given start time.
+func (p *Prometheus) HistogramObserve(name string, start time.Time) {
 	if histo, ok := p.Histogram(name); ok {
 		histo.Observe(time.Since(start).Seconds())
 	}

@@ -19,8 +19,8 @@ func (_m *MetricsMock) CounterAdd(name string, value float64) {
 	_m.Called(name, value)
 }
 
-// ObserveHistogram provides a mock function with given fields: name, start
-func (_m *MetricsMock) ObserveHistogram(name string, start time.Time) {
+// HistogramObserve provides a mock function with given fields: name, start
+func (_m *MetricsMock) HistogramObserve(name string, start time.Time) {
 	_m.Called(name, start)
 }
 

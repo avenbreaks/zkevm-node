@@ -21,8 +21,8 @@ func (_m *metricsMock) CounterVecInc(name string, label string) {
 	_m.Called(name, label)
 }
 
-// ObserveHistogram provides a mock function with given fields: name, start
-func (_m *metricsMock) ObserveHistogram(name string, start time.Time) {
+// HistogramObserve provides a mock function with given fields: name, start
+func (_m *metricsMock) HistogramObserve(name string, start time.Time) {
 	_m.Called(name, start)
 }
 

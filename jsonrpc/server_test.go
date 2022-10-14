@@ -2,6 +2,7 @@ package jsonrpc
 
 import (
 	"fmt"
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"net/http"
 	"testing"
 	"time"
@@ -29,6 +30,26 @@ type mocks struct {
 	Storage           *storageMock
 	DbTx              *dbTxMock
 	Metrics           *metricsMock
+}
+
+func TestServerMetrics(t *testing.T) {
+	pool := newPoolMock(t)
+	state := newStateMock(t)
+	gasPriceEstimator := newGasPriceEstimatorMock(t)
+	storage := newStorageMock(t)
+	apis := map[string]bool{
+		APIEth:    true,
+		APINet:    true,
+		APIDebug:  true,
+		APIZKEVM:  true,
+		APITxPool: true,
+		APIWeb3:   true,
+	}
+	s := NewServer(getDefaultConfig(), pool, state, gasPriceEstimator, storage, apis, metrics.NewPrometheus(), true)
+	err := s.Start()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func newMockedServer(t *testing.T, cfg Config) (*mockedServer, *mocks, *ethclient.Client) {

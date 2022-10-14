@@ -30,10 +30,8 @@ func (s *Server) registerMetrics() {
 	}
 
 	var (
-		// gauges     map[string]prometheus.GaugeOpts
 		counterVecs []metrics.CounterVecOpts
 		histograms  []prometheus.HistogramOpts
-		// summaries  map[string]prometheus.SummaryOpts
 	)
 
 	counterVecs = []metrics.CounterVecOpts{
@@ -74,5 +72,5 @@ func (s *Server) requestDurationMetric(start time.Time) {
 		return
 	}
 
-	s.metrics.ObserveHistogram(requestDurationName, start)
+	s.metrics.HistogramObserve(requestDurationName, start)
 }

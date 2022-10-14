@@ -113,6 +113,13 @@ func (s *Server) Start() error {
 
 	if s.metricsEnabled {
 		s.registerMetrics()
+		log.Warn("$$$$$ Incrementing Invalid Request")
+		s.requestMetricInc(requestMetricLabelInvalid)
+		s.requestMetricInc(requestMetricLabelInvalid)
+		s.requestMetricInc(requestMetricLabelBatch)
+		s.requestMetricInc(requestMetricLabelBatch)
+		s.requestMetricInc(requestMetricLabelSingle)
+		s.requestMetricInc(requestMetricLabelSingle)
 	}
 
 	s.srv = &http.Server{

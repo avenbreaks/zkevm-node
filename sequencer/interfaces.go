@@ -89,5 +89,5 @@ type metricsInterface interface {
 	RegisterCounters(opts ...prometheus.CounterOpts)
 	RegisterHistograms(opts ...prometheus.HistogramOpts)
 	CounterAdd(name string, value float64)
-	ObserveHistogram(name string, start time.Time)
+	HistogramObserve(name string, start time.Time)
 }

@@ -75,5 +75,5 @@ type metricsInterface interface {
 	RegisterCounterVecs(opts ...metrics.CounterVecOpts)
 	RegisterHistograms(opts ...prometheus.HistogramOpts)
 	CounterVecInc(name string, label string)
-	ObserveHistogram(name string, start time.Time)
+	HistogramObserve(name string, start time.Time)
 }
