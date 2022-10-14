@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"math/big"
 	"strings"
 	"time"
@@ -49,7 +50,7 @@ func (s *Sequencer) tryToSendSequence(ctx context.Context, ticker *time.Ticker) 
 		lastVirtualBatchNum+1, lastVirtualBatchNum+uint64(sequenceCount),
 	)
 
-	s.batchesMetricAdd(float64(sequenceCount))
+	metrics.CounterAdd(metricSequencesSentToL1CountName, float64(sequenceCount))
 	s.txManager.SequenceBatches(sequences)
 }
 

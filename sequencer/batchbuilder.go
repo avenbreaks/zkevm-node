@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"math"
 	"strings"
 	"time"
@@ -71,6 +72,8 @@ func (s *Sequencer) tryToProcessTx(ctx context.Context, ticker *time.Ticker) {
 	getTxsLimit := maxTxsPerBatch - uint64(len(s.sequenceInProgress.Txs))
 
 	minGasPrice, err := s.gpe.GetAvgGasPrice(ctx)
+	metrics.GaugeSet(metricGasPriceEstimatedAverageName, float64(minGasPrice.Uint64()))
+
 	if err != nil {
 		log.Errorf("failed to get avg gas price, err: %w", err)
 		return

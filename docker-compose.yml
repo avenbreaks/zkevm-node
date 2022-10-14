@@ -10,8 +10,8 @@ services:
       - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
       - ZKEVM_NODE_POOL_HOST=zkevm-pool-db
       - ZKEVM_NODE_ETHERMAN_PRIVATEKEYPATH=/pk/keystore
-#    ports: # Needed if metrics enabled
-#      - 9091:9091
+    ports: # Needed if metrics enabled
+      - 9091:9091
     volumes:
       - ./test/test.keystore:/pk/keystore
       - ./${CONFIG_MODE}/config/config.${CONFIG_MODE:-local}.toml:/app/config.toml
@@ -26,7 +26,7 @@ services:
     image: zkevm-node
     ports:
       - 8123:8123
-#      - 9092:9091 # Needed if metrics enabled
+      - 9092:9091 # Needed if metrics enabled
     environment:
       - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
       - ZKEVM_NODE_POOL_HOST=zkevm-pool-db
@@ -47,7 +47,7 @@ services:
     image: zkevm-node
     ports:
       - 8125:8125
-#      - 9093:9091 # Needed if metrics enabled
+      - 9093:9091 # Needed if metrics enabled
     environment:
       - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
       - ZKEVM_NODE_POOL_HOST=zkevm-pool-db
