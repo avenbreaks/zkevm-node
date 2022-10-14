@@ -80,6 +80,13 @@ func (p *Prometheus) Gauge(name string) (gauge prometheus.Gauge, exist bool) {
 	return gauge, exist
 }
 
+// GaugeSet sets the value for gauge with the given name.
+func (p *Prometheus) GaugeSet(name string, value float64) {
+	if c, ok := p.Gauge(name); ok {
+		c.Set(value)
+	}
+}
+
 // RegisterCounters registers the provided counter metrics to the Prometheus
 // registerer.
 func (p *Prometheus) RegisterCounters(opts ...prometheus.CounterOpts) {
