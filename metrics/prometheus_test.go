@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"os"
 	"testing"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,8 +30,11 @@ func TestMain(m *testing.M) {
 	Initialize()
 	// Overriding registerer to be able to do the unit tests independently
 	registerer = prometheus.NewRegistry()
-	m.Run()
+
+	code := m.Run()
+
 	initialized = false
+	os.Exit(code)
 }
 
 func TestHandler(t *testing.T) {
@@ -144,7 +148,6 @@ func TestUnregisterHistograms(t *testing.T) {
 }
 
 func TestRegisterSummaries(t *testing.T) {
-
 	summariesOpts := []prometheus.SummaryOpts{summaryOpts}
 
 	RegisterSummaries(summariesOpts...)

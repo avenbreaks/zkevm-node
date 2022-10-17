@@ -13,17 +13,20 @@ const (
 	requestsHandledName = metricRequestPrefix + "handled"
 	requestDurationName = metricRequestPrefix + "duration"
 
-	requestHandledLabelName = "status"
+	requestHandledTypeLabelName = "type"
 )
 
 // RequestHandledLabel represents the possible values for the
-// `jsonrpc_request_handled` metric.
+// `jsonrpc_request_handled` metric `type` label.
 type RequestHandledLabel string
 
 const (
+	// RequestHandledLabelInvalid represents an request of type invalid
 	RequestHandledLabelInvalid RequestHandledLabel = "invalid"
-	RequestHandledLabelSingle  RequestHandledLabel = "single"
-	RequestHandledLabelBatch   RequestHandledLabel = "batch"
+	// RequestHandledLabelSingle represents an request of type single
+	RequestHandledLabelSingle RequestHandledLabel = "single"
+	// RequestHandledLabelBatch represents an request of type batch
+	RequestHandledLabelBatch RequestHandledLabel = "batch"
 )
 
 // Register the metrics for the jsonrpc package.
@@ -39,7 +42,7 @@ func Register() {
 				Name: requestsHandledName,
 				Help: "[JSONRPC] number of requests handled",
 			},
-			Labels: []string{requestHandledLabelName},
+			Labels: []string{requestHandledTypeLabelName},
 		},
 	}
 

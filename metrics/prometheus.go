@@ -94,7 +94,6 @@ func Gauge(name string) (gauge prometheus.Gauge, exist bool) {
 }
 
 // GaugeSet sets the value for gauge with the given name.
-
 func GaugeSet(name string, value float64) {
 	if !initialized {
 		return
