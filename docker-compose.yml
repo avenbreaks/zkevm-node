@@ -333,10 +333,11 @@ services:
       - "/bin/sh"
       - "-c"
       - "/app/zkevm-node run --genesis /app/genesis.json --cfg /app/config.toml --components \"rpc,synchronizer\""
+
   # Needed if metrics enabled
-  prometheus:
-    image: prom/prometheus:v2.34.0
-    container_name: prometheus
+  zkevm-metrics:
+    image: prom/prometheus:v2.39.1
+    container_name: zkevm-metrics
     restart: unless-stopped
     ports:
       - 9090:9090

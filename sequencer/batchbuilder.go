@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"math"
 	"strings"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/0xPolygonHermez/zkevm-node/pool"
 	"github.com/0xPolygonHermez/zkevm-node/pool/pgpoolstorage"
+	"github.com/0xPolygonHermez/zkevm-node/sequencer/metrics"
 	"github.com/0xPolygonHermez/zkevm-node/state"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
@@ -72,7 +72,7 @@ func (s *Sequencer) tryToProcessTx(ctx context.Context, ticker *time.Ticker) {
 	getTxsLimit := maxTxsPerBatch - uint64(len(s.sequenceInProgress.Txs))
 
 	minGasPrice, err := s.gpe.GetAvgGasPrice(ctx)
-	metrics.GaugeSet(metricGasPriceEstimatedAverageName, float64(minGasPrice.Uint64()))
+	metrics.AverageGasPrice(float64(minGasPrice.Uint64()))
 
 	if err != nil {
 		log.Errorf("failed to get avg gas price, err: %w", err)

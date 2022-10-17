@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"time"
 
 	"github.com/0xPolygonHermez/zkevm-node/etherman/types"
 	"github.com/0xPolygonHermez/zkevm-node/log"
+	"github.com/0xPolygonHermez/zkevm-node/sequencer/metrics"
 	"github.com/0xPolygonHermez/zkevm-node/sequencer/profitabilitychecker"
 	"github.com/0xPolygonHermez/zkevm-node/state"
 	"github.com/ethereum/go-ethereum/common"
@@ -73,7 +73,7 @@ func (s *Sequencer) Start(ctx context.Context) {
 	}
 
 	// Registered only if metrics are enabled
-	registerMetrics()
+	metrics.Register()
 
 	// initialize sequence
 	batchNum, err := s.state.GetLastBatchNumber(ctx, nil)
@@ -156,7 +156,7 @@ func (s *Sequencer) isSynced(ctx context.Context) bool {
 		return false
 	}
 
-	metrics.GaugeSet(metricBatchesLastNumberName, float64(lastSyncedBatchNum))
+	metrics.LastSyncedBatchNumber(float64(lastSyncedBatchNum))
 
 	return true
 }

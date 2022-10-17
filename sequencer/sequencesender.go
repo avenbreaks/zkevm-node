@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"math/big"
 	"strings"
 	"time"
 
 	"github.com/0xPolygonHermez/zkevm-node/etherman/types"
 	"github.com/0xPolygonHermez/zkevm-node/log"
+	"github.com/0xPolygonHermez/zkevm-node/sequencer/metrics"
 	"github.com/0xPolygonHermez/zkevm-node/state"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -50,7 +50,7 @@ func (s *Sequencer) tryToSendSequence(ctx context.Context, ticker *time.Ticker) 
 		lastVirtualBatchNum+1, lastVirtualBatchNum+uint64(sequenceCount),
 	)
 
-	metrics.CounterAdd(metricSequencesSentToL1CountName, float64(sequenceCount))
+	metrics.SequencesSentToL1(float64(sequenceCount))
 	s.txManager.SequenceBatches(sequences)
 }
 

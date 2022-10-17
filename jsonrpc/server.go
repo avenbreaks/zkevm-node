@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/0xPolygonHermez/zkevm-node/metrics"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"time"
 
+	"github.com/0xPolygonHermez/zkevm-node/jsonrpc/metrics"
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/didip/tollbooth/v6"
 )
@@ -107,7 +107,7 @@ func (s *Server) Start() error {
 	mux.Handle("/", tollbooth.LimitFuncHandler(lmt, s.handle))
 
 	// Registered only if metrics are enabled
-	registerMetrics()
+	metrics.Register()
 
 	s.srv = &http.Server{
 		Handler: mux,
@@ -186,7 +186,7 @@ func (s *Server) handle(w http.ResponseWriter, req *http.Request) {
 	} else {
 		s.handleBatchRequest(w, data)
 	}
-	metrics.HistogramObserve(requestDurationName, start)
+	metrics.RequestDuration(start)
 }
 
 func (s *Server) isSingleRequest(data []byte) (bool, rpcError) {
@@ -200,7 +200,7 @@ func (s *Server) isSingleRequest(data []byte) (bool, rpcError) {
 }
 
 func (s *Server) handleSingleRequest(w http.ResponseWriter, data []byte) {
-	defer metricRequestInc(requestMetricLabelSingle)
+	defer metrics.RequestHandled(metrics.RequestHandledLabelSingle)
 	request, err := s.parseRequest(data)
 	if err != nil {
 		handleError(w, err)
@@ -223,7 +223,7 @@ func (s *Server) handleSingleRequest(w http.ResponseWriter, data []byte) {
 }
 
 func (s *Server) handleBatchRequest(w http.ResponseWriter, data []byte) {
-	defer metricRequestInc(requestMetricLabelBatch)
+	defer metrics.RequestHandled(metrics.RequestHandledLabelBatch)
 	requests, err := s.parseRequests(data)
 	if err != nil {
 		handleError(w, err)
@@ -265,7 +265,7 @@ func (s *Server) parseRequests(data []byte) ([]Request, error) {
 }
 
 func (s *Server) handleInvalidRequest(w http.ResponseWriter, err error) {
-	defer metricRequestInc(requestMetricLabelInvalid)
+	defer metrics.RequestHandled(metrics.RequestHandledLabelInvalid)
 	handleError(w, err)
 }
 

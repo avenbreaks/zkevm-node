@@ -418,7 +418,7 @@ func registerCounterVecIfNotExists(opts CounterVecOpts) {
 	counterVecs[opts.Name] = counterVec
 }
 
-// unregisterCounterIfExists unregisters single counter metric if exists
+// unregisterCounterVecIfExists unregisters single counter metric if exists
 func unregisterCounterVecIfExists(name string) {
 	var (
 		counterVec *prometheus.CounterVec
