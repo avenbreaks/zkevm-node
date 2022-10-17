@@ -26,7 +26,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	Initialize(true)
+	Initialize()
 	// Overriding registerer to be able to do the unit tests independently
 	registerer = prometheus.NewRegistry()
 	m.Run()
