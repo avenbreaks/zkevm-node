@@ -263,7 +263,7 @@ services:
 
   zkprover-mock:
     container_name: zkprover-mock
-    image: zkprover-mock
+    image: hermeznetwork/zkprover-mock:latest
     ports:
       - 43061:43061 # MT
       - 43071:43071 # Executor
