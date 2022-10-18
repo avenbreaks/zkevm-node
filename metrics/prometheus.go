@@ -135,6 +135,17 @@ func Counter(name string) (counter prometheus.Counter, exist bool) {
 	return counter, exist
 }
 
+// CounterInc increments the counter with the given name.
+func CounterInc(name string) {
+	if !initialized {
+		return
+	}
+
+	if c, ok := Counter(name); ok {
+		c.Inc(value)
+	}
+}
+
 // CounterAdd increments the counter with the given name.
 func CounterAdd(name string, value float64) {
 	if !initialized {
@@ -198,6 +209,18 @@ func CounterVecInc(name string, label string) {
 
 	if cv, ok := CounterVec(name); ok {
 		cv.WithLabelValues(label).Inc()
+	}
+}
+
+// CounterVecAdd increments the counter vec by the given value, with the given
+// name and label.
+func CounterVecAdd(name string, label string, value float64) {
+	if !initialized {
+		return
+	}
+
+	if cv, ok := CounterVec(name); ok {
+		cv.WithLabelValues(label).Add(value)
 	}
 }
 

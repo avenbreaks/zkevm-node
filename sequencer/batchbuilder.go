@@ -185,6 +185,10 @@ func (s *Sequencer) tryToProcessTx(ctx context.Context, ticker *time.Ticker) {
 
 	invalidTxsHashes, failedTxsHashes := s.splitInvalidAndFailedTxs(ctx, unprocessedTxs, ticker)
 
+	metrics.TxProcessed(metrics.TxProcessedLabelSuccessful, float64(len(processResponse.processedTxsHashes)))
+	metrics.TxProcessed(metrics.TxProcessedLabelInvalid, float64(len(invalidTxsHashes)))
+	metrics.TxProcessed(metrics.TxProcessedLabelFailed, float64(len(failedTxsHashes)))
+
 	// update processed txs
 	s.updateTxsStatus(ctx, ticker, processResponse.processedTxsHashes, pool.TxStatusSelected)
 	// update invalid txs

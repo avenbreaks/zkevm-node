@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	metricPrefix        = "jsonrpc_"
-	metricRequestPrefix = metricPrefix + "request_"
-	requestsHandledName = metricRequestPrefix + "handled"
-	requestDurationName = metricRequestPrefix + "duration"
+	prefix              = "jsonrpc_"
+	requestPrefix       = prefix + "request_"
+	requestsHandledName = requestPrefix + "handled"
+	requestDurationName = requestPrefix + "duration"
 
 	requestHandledTypeLabelName = "type"
 )

@@ -100,6 +100,7 @@ func (s *Sequencer) getSequencesToSend(ctx context.Context) ([]types.Sequence, e
 		tx, err = s.etherman.EstimateGasSequenceBatches(sequences)
 
 		if err == nil && new(big.Int).SetUint64(tx.Gas()).Cmp(s.cfg.MaxSequenceSize.Int) >= 1 {
+			metrics.SequencesOvesizedDataError()
 			log.Infof("oversized Data on TX hash %s (%d > %d)", tx.Hash(), tx.Gas(), s.cfg.MaxSequenceSize)
 			err = core.ErrOversizedData
 		}
@@ -160,6 +161,7 @@ func (s *Sequencer) handleEstimateGasSendSequenceErr(
 	if isDataForEthTxTooBig(err) {
 		if len(sequences) == 1 {
 			// TODO: gracefully handle this situation by creating an L2 reorg
+			// NOTE(pg): we lose the metric for the OversizedData error if we crash like this
 			log.Fatalf(
 				"BatchNum %d is too big to be sent to L1, even when it's the only item in the sequence: %v",
 				currentBatchNumToSequence, err,
