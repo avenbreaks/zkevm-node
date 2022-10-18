@@ -70,5 +70,5 @@ func RequestHandled(label RequestHandledLabel) {
 // RequestDuration observes (histogram) the duration of a request from the
 // provided starting time.
 func RequestDuration(start time.Time) {
-	metrics.HistogramObserve(requestDurationName, start)
+	metrics.HistogramObserve(requestDurationName, time.Since(start).Seconds())
 }

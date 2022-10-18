@@ -1,29 +1,32 @@
 package metrics
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
-
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
-	gaugeName      = "gaugeName"
-	gaugeOpts      = prometheus.GaugeOpts{Name: gaugeName}
-	gauge          = prometheus.NewGauge(gaugeOpts)
-	counterName    = "counterName"
-	counterOpts    = prometheus.CounterOpts{Name: counterName}
-	counter        = prometheus.NewCounter(counterOpts)
-	counterVecName = "counterVecName"
-	counterVecOpts = CounterVecOpts{prometheus.CounterOpts{Name: counterVecName}, []string{}}
-	counterVec     = prometheus.NewCounterVec(counterVecOpts.CounterOpts, counterVecOpts.Labels)
-	histogramName  = "histogramName"
-	histogramOpts  = prometheus.HistogramOpts{Name: histogramName}
-	histogram      = prometheus.NewHistogram(histogramOpts)
-	summaryName    = "summaryName"
-	summaryOpts    = prometheus.SummaryOpts{Name: summaryName}
-	summary        = prometheus.NewSummary(summaryOpts)
+	gaugeName           = "gaugeName"
+	gaugeOpts           = prometheus.GaugeOpts{Name: gaugeName}
+	gauge               = prometheus.NewGauge(gaugeOpts)
+	counterName         = "counterName"
+	counterOpts         = prometheus.CounterOpts{Name: counterName}
+	counter             = prometheus.NewCounter(counterOpts)
+	counterVecName      = "counterVecName"
+	counterVecLabelName = "counterVecLabelName"
+	counterVecLabelVal  = "counterVecLabelVal"
+	counterVecOpts      = CounterVecOpts{prometheus.CounterOpts{Name: counterVecName}, []string{counterVecLabelName}}
+	counterVec          = prometheus.NewCounterVec(counterVecOpts.CounterOpts, counterVecOpts.Labels)
+	histogramName       = "histogramName"
+	histogramOpts       = prometheus.HistogramOpts{Name: histogramName}
+	histogram           = prometheus.NewHistogram(histogramOpts)
+	summaryName         = "summaryName"
+	summaryOpts         = prometheus.SummaryOpts{Name: summaryName}
+	summary             = prometheus.NewSummary(summaryOpts)
 )
 
 func TestMain(m *testing.M) {
@@ -51,13 +54,23 @@ func TestRegisterGauges(t *testing.T) {
 	assert.Len(t, gauges, 1)
 }
 
-func TestGetGauge(t *testing.T) {
+func TestGauge(t *testing.T) {
 	gauges[gaugeName] = gauge
 
 	actual, exist := Gauge(gaugeName)
 
 	assert.True(t, exist)
 	assert.Equal(t, gauge, actual)
+}
+
+func TestGaugeSet(t *testing.T) {
+	gauges[gaugeName] = gauge
+	expected := float64(2)
+
+	GaugeSet(gaugeName, expected)
+	actual := testutil.ToFloat64(gauge)
+
+	assert.Equal(t, expected, actual)
 }
 
 func TestUnregisterGauges(t *testing.T) {
@@ -76,7 +89,7 @@ func TestRegisterCounters(t *testing.T) {
 	assert.Len(t, counters, 1)
 }
 
-func TestGetCounter(t *testing.T) {
+func TestCounter(t *testing.T) {
 	counters[counterName] = counter
 
 	actual, exist := Counter(counterName)
@@ -85,7 +98,25 @@ func TestGetCounter(t *testing.T) {
 	assert.Equal(t, counter, actual)
 }
 
-// TODO: Add unit test for CounterInc
+func TestCounterInc(t *testing.T) {
+	counters[counterName] = counter
+	expected := float64(1)
+
+	CounterInc(counterName)
+	actual := testutil.ToFloat64(counter)
+
+	assert.Equal(t, expected, actual)
+}
+
+func TestCounterAdd(t *testing.T) {
+	counters[counterName] = counter
+	expected := float64(2)
+
+	CounterAdd(counterName, expected)
+	actual := testutil.ToFloat64(counter)
+
+	assert.Equal(t, expected, actual)
+}
 
 func TestUnregisterCounters(t *testing.T) {
 	RegisterCounters(counterOpts)
@@ -103,7 +134,7 @@ func TestRegisterCounterVecs(t *testing.T) {
 	assert.Len(t, counterVecs, 1)
 }
 
-func TestGetCounterVec(t *testing.T) {
+func TestCounterVec(t *testing.T) {
 	counterVecs[counterVecName] = counterVec
 
 	actual, exist := CounterVec(counterVecName)
@@ -112,7 +143,29 @@ func TestGetCounterVec(t *testing.T) {
 	assert.Equal(t, counterVec, actual)
 }
 
-// TODO: Add unit test for CounterVecInc
+func TestCounterVecInc(t *testing.T) {
+	counterVecs[counterVecName] = counterVec
+	expected := float64(1)
+
+	CounterVecInc(counterVecName, counterVecLabelVal)
+	currCounterVec, err := counterVec.GetMetricWithLabelValues(counterVecLabelVal)
+	require.NoError(t, err)
+	actual := testutil.ToFloat64(currCounterVec)
+
+	assert.Equal(t, expected, actual)
+}
+
+func TestCounterVecAdd(t *testing.T) {
+	counterVecs[counterVecName] = counterVec
+	expected := float64(2)
+
+	CounterVecAdd(counterVecName, counterVecLabelVal, expected)
+	currCounterVec, err := counterVec.GetMetricWithLabelValues(counterVecLabelVal)
+	require.NoError(t, err)
+	actual := testutil.ToFloat64(currCounterVec)
+
+	assert.Equal(t, expected, actual)
+}
 
 func TestUnregisterCounterVecs(t *testing.T) {
 	RegisterCounterVecs(counterVecOpts)
@@ -130,13 +183,21 @@ func TestRegisterHistograms(t *testing.T) {
 	assert.Len(t, histograms, 1)
 }
 
-func TestGetHistogram(t *testing.T) {
+func TestHistogram(t *testing.T) {
 	histograms[histogramName] = histogram
 
 	actual, exist := Histogram(histogramName)
 
 	assert.True(t, exist)
 	assert.Equal(t, histogram, actual)
+}
+
+func TestHistogramObserve(t *testing.T) {
+	histograms[histogramName] = histogram
+	expected := float64(2)
+
+	HistogramObserve(histogramName, expected)
+	// TODO: Finish the test
 }
 
 func TestUnregisterHistograms(t *testing.T) {
@@ -155,7 +216,7 @@ func TestRegisterSummaries(t *testing.T) {
 	assert.Len(t, summaries, 1)
 }
 
-func TestGetSummary(t *testing.T) {
+func TestSummary(t *testing.T) {
 	summaries[summaryName] = summary
 
 	actual, exist := Summary(summaryName)

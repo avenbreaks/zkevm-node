@@ -1,13 +1,11 @@
 package metrics
 
 import (
-	"net/http"
-	"sync"
-	"time"
-
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
+	"sync"
 )
 
 var (
@@ -142,7 +140,7 @@ func CounterInc(name string) {
 	}
 
 	if c, ok := Counter(name); ok {
-		c.Inc(value)
+		c.Inc()
 	}
 }
 
@@ -271,13 +269,13 @@ func Histogram(name string) (histogram prometheus.Histogram, exist bool) {
 }
 
 // HistogramObserve observes the histogram from the given start time.
-func HistogramObserve(name string, start time.Time) {
+func HistogramObserve(name string, value float64) {
 	if !initialized {
 		return
 	}
 
 	if histo, ok := Histogram(name); ok {
-		histo.Observe(time.Since(start).Seconds())
+		histo.Observe(value)
 	}
 }
 
