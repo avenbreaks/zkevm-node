@@ -3,9 +3,11 @@ package metrics
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
+	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
+	"runtime"
 	"testing"
 )
 
@@ -22,7 +24,7 @@ var (
 	counterVecOpts      = CounterVecOpts{prometheus.CounterOpts{Name: counterVecName}, []string{counterVecLabelName}}
 	counterVec          = prometheus.NewCounterVec(counterVecOpts.CounterOpts, counterVecOpts.Labels)
 	histogramName       = "histogramName"
-	histogramOpts       = prometheus.HistogramOpts{Name: histogramName}
+	histogramOpts       = prometheus.HistogramOpts{Name: histogramName, Buckets: []float64{0.5, 10, 20}}
 	histogram           = prometheus.NewHistogram(histogramOpts)
 	summaryName         = "summaryName"
 	summaryOpts         = prometheus.SummaryOpts{Name: summaryName}
@@ -194,10 +196,45 @@ func TestHistogram(t *testing.T) {
 
 func TestHistogramObserve(t *testing.T) {
 	histograms[histogramName] = histogram
-	expected := float64(2)
 
-	HistogramObserve(histogramName, expected)
-	// TODO: Finish the test
+	var (
+		quit = make(chan struct{})
+	)
+
+	defer func() { close(quit) }()
+
+	observe := func() {
+		for {
+			select {
+			case <-quit:
+				return
+			default:
+				HistogramObserve(histogramName, 1)
+			}
+		}
+	}
+
+	go observe()
+	go observe()
+	go observe()
+
+	for i := 0; i < 100; i++ {
+		m := &dto.Metric{}
+		if err := histogram.Write(m); err != nil {
+			t.Fatal("unexpected error writing histogram:", err)
+		}
+		h := m.GetHistogram()
+		if h.GetSampleCount() != uint64(h.GetSampleSum()) ||
+			h.GetSampleCount() != h.GetBucket()[1].GetCumulativeCount() ||
+			h.GetSampleCount() != h.GetBucket()[2].GetCumulativeCount() {
+			t.Fatalf(
+				"inconsistent counts in histogram: count=%d sum=%f buckets=[%d, %d]",
+				h.GetSampleCount(), h.GetSampleSum(),
+				h.GetBucket()[1].GetCumulativeCount(), h.GetBucket()[2].GetCumulativeCount(),
+			)
+		}
+		runtime.Gosched()
+	}
 }
 
 func TestUnregisterHistograms(t *testing.T) {
