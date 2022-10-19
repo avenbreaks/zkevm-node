@@ -64,11 +64,11 @@ func start(cliCtx *cli.Context) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	// READ CHAIN ID FROM POE SC
 	l2ChainID, err := etherman.GetL2ChainID()
 	if err != nil {
 		log.Fatal(err)
-
 	}
 	c.Aggregator.ChainID = l2ChainID
 	c.RPC.ChainID = l2ChainID
