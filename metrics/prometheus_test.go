@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"runtime"
 	"sync"
 	"testing"
 
@@ -241,46 +240,15 @@ func TestHistogramObserve(t *testing.T) {
 	defer cleanup()
 	histograms[histogramName] = histogram
 
-	// NOTE: this is taken from prometheus tests for Histogram. In order to validate that
-	//       our implementation doesn't break the main prometheus functionality.
-	var (
-		quit = make(chan struct{})
-	)
+	expected := 42.0
 
-	defer func() { close(quit) }()
+	HistogramObserve(histogramName, expected)
 
-	observe := func() {
-		for {
-			select {
-			case <-quit:
-				return
-			default:
-				HistogramObserve(histogramName, 1)
-			}
-		}
-	}
-
-	go observe()
-	go observe()
-	go observe()
-
-	for i := 0; i < 100; i++ {
-		m := &dto.Metric{}
-		if err := histogram.Write(m); err != nil {
-			t.Fatal("unexpected error writing histogram:", err)
-		}
-		h := m.GetHistogram()
-		if h.GetSampleCount() != uint64(h.GetSampleSum()) ||
-			h.GetSampleCount() != h.GetBucket()[1].GetCumulativeCount() ||
-			h.GetSampleCount() != h.GetBucket()[2].GetCumulativeCount() {
-			t.Fatalf(
-				"inconsistent counts in histogram: count=%d sum=%f buckets=[%d, %d]",
-				h.GetSampleCount(), h.GetSampleSum(),
-				h.GetBucket()[1].GetCumulativeCount(), h.GetBucket()[2].GetCumulativeCount(),
-			)
-		}
-		runtime.Gosched()
-	}
+	m := &dto.Metric{}
+	require.NoError(t, histogram.Write(m))
+	h := m.GetHistogram()
+	actual := h.GetSampleSum()
+	assert.Equal(t, expected, actual)
 }
 
 func TestUnregisterHistograms(t *testing.T) {
