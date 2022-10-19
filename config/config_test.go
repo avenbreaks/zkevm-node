@@ -265,7 +265,7 @@ func Test_Defaults(t *testing.T) {
 		},
 		{
 			path:          "Metrics.Host",
-			expectedValue: "localhost",
+			expectedValue: "0.0.0.0",
 		},
 		{
 			path:          "Metrics.Port",
