@@ -9,9 +9,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/jsonrpc/metrics"
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/didip/tollbooth/v6"
 )
@@ -106,9 +104,6 @@ func (s *Server) Start() error {
 	lmt := tollbooth.NewLimiter(s.config.MaxRequestsPerIPAndSecond, nil)
 	mux.Handle("/", tollbooth.LimitFuncHandler(lmt, s.handle))
 
-	// Registered only if metrics are enabled
-	metrics.Register()
-
 	s.srv = &http.Server{
 		Handler: mux,
 	}
@@ -164,29 +159,27 @@ func (s *Server) handle(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method != "POST" {
 		err := errors.New("method " + req.Method + " not allowed")
-		s.handleInvalidRequest(w, err)
+		handleError(w, err)
 		return
 	}
 
 	data, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		s.handleInvalidRequest(w, err)
+		handleError(w, err)
 		return
 	}
 
 	single, err := s.isSingleRequest(data)
 	if err != nil {
-		s.handleInvalidRequest(w, err)
+		handleError(w, err)
 		return
 	}
 
-	start := time.Now()
 	if single {
 		s.handleSingleRequest(w, data)
 	} else {
 		s.handleBatchRequest(w, data)
 	}
-	metrics.RequestDuration(start)
 }
 
 func (s *Server) isSingleRequest(data []byte) (bool, rpcError) {
@@ -200,7 +193,6 @@ func (s *Server) isSingleRequest(data []byte) (bool, rpcError) {
 }
 
 func (s *Server) handleSingleRequest(w http.ResponseWriter, data []byte) {
-	defer metrics.RequestHandled(metrics.RequestHandledLabelSingle)
 	request, err := s.parseRequest(data)
 	if err != nil {
 		handleError(w, err)
@@ -223,7 +215,6 @@ func (s *Server) handleSingleRequest(w http.ResponseWriter, data []byte) {
 }
 
 func (s *Server) handleBatchRequest(w http.ResponseWriter, data []byte) {
-	defer metrics.RequestHandled(metrics.RequestHandledLabelBatch)
 	requests, err := s.parseRequests(data)
 	if err != nil {
 		handleError(w, err)
@@ -262,11 +253,6 @@ func (s *Server) parseRequests(data []byte) ([]Request, error) {
 	}
 
 	return requests, nil
-}
-
-func (s *Server) handleInvalidRequest(w http.ResponseWriter, err error) {
-	defer metrics.RequestHandled(metrics.RequestHandledLabelInvalid)
-	handleError(w, err)
 }
 
 func handleError(w http.ResponseWriter, err error) {
