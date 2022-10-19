@@ -6,49 +6,60 @@ import (
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
 	"runtime"
+	"sync"
 	"testing"
 )
 
 var (
 	gaugeName           = "gaugeName"
 	gaugeOpts           = prometheus.GaugeOpts{Name: gaugeName}
-	gauge               = prometheus.NewGauge(gaugeOpts)
+	gauge               prometheus.Gauge
 	counterName         = "counterName"
 	counterOpts         = prometheus.CounterOpts{Name: counterName}
-	counter             = prometheus.NewCounter(counterOpts)
+	counter             prometheus.Counter
 	counterVecName      = "counterVecName"
 	counterVecLabelName = "counterVecLabelName"
 	counterVecLabelVal  = "counterVecLabelVal"
 	counterVecOpts      = CounterVecOpts{prometheus.CounterOpts{Name: counterVecName}, []string{counterVecLabelName}}
-	counterVec          = prometheus.NewCounterVec(counterVecOpts.CounterOpts, counterVecOpts.Labels)
+	counterVec          *prometheus.CounterVec
 	histogramName       = "histogramName"
 	histogramOpts       = prometheus.HistogramOpts{Name: histogramName, Buckets: []float64{0.5, 10, 20}}
-	histogram           = prometheus.NewHistogram(histogramOpts)
+	histogram           prometheus.Histogram
 	summaryName         = "summaryName"
 	summaryOpts         = prometheus.SummaryOpts{Name: summaryName}
 	summary             = prometheus.NewSummary(summaryOpts)
 )
 
-func TestMain(m *testing.M) {
+func setup() {
 	Initialize()
+	gauge = prometheus.NewGauge(gaugeOpts)
+	counter = prometheus.NewCounter(counterOpts)
+	counterVec = prometheus.NewCounterVec(counterVecOpts.CounterOpts, counterVecOpts.Labels)
+	histogram = prometheus.NewHistogram(histogramOpts)
+	summary = prometheus.NewSummary(summaryOpts)
+
 	// Overriding registerer to be able to do the unit tests independently
 	registerer = prometheus.NewRegistry()
+}
 
-	code := m.Run()
-
+func cleanup() {
 	initialized = false
-	os.Exit(code)
+	initOnce = sync.Once{}
 }
 
 func TestHandler(t *testing.T) {
+	setup()
+	defer cleanup()
+
 	actual := Handler()
 
 	assert.NotNil(t, actual)
 }
 
 func TestRegisterGauges(t *testing.T) {
+	setup()
+	defer cleanup()
 	gaugesOpts := []prometheus.GaugeOpts{gaugeOpts}
 
 	RegisterGauges(gaugesOpts...)
@@ -57,6 +68,8 @@ func TestRegisterGauges(t *testing.T) {
 }
 
 func TestGauge(t *testing.T) {
+	setup()
+	defer cleanup()
 	gauges[gaugeName] = gauge
 
 	actual, exist := Gauge(gaugeName)
@@ -66,6 +79,8 @@ func TestGauge(t *testing.T) {
 }
 
 func TestGaugeSet(t *testing.T) {
+	setup()
+	defer cleanup()
 	gauges[gaugeName] = gauge
 	expected := float64(2)
 
@@ -76,6 +91,8 @@ func TestGaugeSet(t *testing.T) {
 }
 
 func TestUnregisterGauges(t *testing.T) {
+	setup()
+	defer cleanup()
 	RegisterGauges(gaugeOpts)
 
 	UnregisterGauges(gaugeName)
@@ -84,6 +101,8 @@ func TestUnregisterGauges(t *testing.T) {
 }
 
 func TestRegisterCounters(t *testing.T) {
+	setup()
+	defer cleanup()
 	countersOpts := []prometheus.CounterOpts{counterOpts}
 
 	RegisterCounters(countersOpts...)
@@ -92,6 +111,8 @@ func TestRegisterCounters(t *testing.T) {
 }
 
 func TestCounter(t *testing.T) {
+	setup()
+	defer cleanup()
 	counters[counterName] = counter
 
 	actual, exist := Counter(counterName)
@@ -101,6 +122,8 @@ func TestCounter(t *testing.T) {
 }
 
 func TestCounterInc(t *testing.T) {
+	setup()
+	defer cleanup()
 	counters[counterName] = counter
 	expected := float64(1)
 
@@ -111,6 +134,8 @@ func TestCounterInc(t *testing.T) {
 }
 
 func TestCounterAdd(t *testing.T) {
+	setup()
+	defer cleanup()
 	counters[counterName] = counter
 	expected := float64(2)
 
@@ -121,6 +146,8 @@ func TestCounterAdd(t *testing.T) {
 }
 
 func TestUnregisterCounters(t *testing.T) {
+	setup()
+	defer cleanup()
 	RegisterCounters(counterOpts)
 
 	UnregisterCounters(counterName)
@@ -129,6 +156,8 @@ func TestUnregisterCounters(t *testing.T) {
 }
 
 func TestRegisterCounterVecs(t *testing.T) {
+	setup()
+	defer cleanup()
 	counterVecsOpts := []CounterVecOpts{counterVecOpts}
 
 	RegisterCounterVecs(counterVecsOpts...)
@@ -137,6 +166,8 @@ func TestRegisterCounterVecs(t *testing.T) {
 }
 
 func TestCounterVec(t *testing.T) {
+	setup()
+	defer cleanup()
 	counterVecs[counterVecName] = counterVec
 
 	actual, exist := CounterVec(counterVecName)
@@ -146,6 +177,8 @@ func TestCounterVec(t *testing.T) {
 }
 
 func TestCounterVecInc(t *testing.T) {
+	setup()
+	defer cleanup()
 	counterVecs[counterVecName] = counterVec
 	expected := float64(1)
 
@@ -158,6 +191,8 @@ func TestCounterVecInc(t *testing.T) {
 }
 
 func TestCounterVecAdd(t *testing.T) {
+	setup()
+	defer cleanup()
 	counterVecs[counterVecName] = counterVec
 	expected := float64(2)
 
@@ -170,6 +205,8 @@ func TestCounterVecAdd(t *testing.T) {
 }
 
 func TestUnregisterCounterVecs(t *testing.T) {
+	setup()
+	defer cleanup()
 	RegisterCounterVecs(counterVecOpts)
 
 	UnregisterCounterVecs(counterVecName)
@@ -178,6 +215,8 @@ func TestUnregisterCounterVecs(t *testing.T) {
 }
 
 func TestRegisterHistograms(t *testing.T) {
+	setup()
+	defer cleanup()
 	histogramsOpts := []prometheus.HistogramOpts{histogramOpts}
 
 	RegisterHistograms(histogramsOpts...)
@@ -186,6 +225,8 @@ func TestRegisterHistograms(t *testing.T) {
 }
 
 func TestHistogram(t *testing.T) {
+	setup()
+	defer cleanup()
 	histograms[histogramName] = histogram
 
 	actual, exist := Histogram(histogramName)
@@ -195,8 +236,12 @@ func TestHistogram(t *testing.T) {
 }
 
 func TestHistogramObserve(t *testing.T) {
+	setup()
+	defer cleanup()
 	histograms[histogramName] = histogram
 
+	// NOTE: this is taken from prometheus tests for Histogram. In order to validate that
+	//       our implementation doesn't break the main prometheus functionality.
 	var (
 		quit = make(chan struct{})
 	)
@@ -238,6 +283,8 @@ func TestHistogramObserve(t *testing.T) {
 }
 
 func TestUnregisterHistograms(t *testing.T) {
+	setup()
+	defer cleanup()
 	RegisterHistograms(histogramOpts)
 
 	UnregisterHistogram(histogramName)
@@ -246,6 +293,8 @@ func TestUnregisterHistograms(t *testing.T) {
 }
 
 func TestRegisterSummaries(t *testing.T) {
+	setup()
+	defer cleanup()
 	summariesOpts := []prometheus.SummaryOpts{summaryOpts}
 
 	RegisterSummaries(summariesOpts...)
@@ -254,6 +303,8 @@ func TestRegisterSummaries(t *testing.T) {
 }
 
 func TestSummary(t *testing.T) {
+	setup()
+	defer cleanup()
 	summaries[summaryName] = summary
 
 	actual, exist := Summary(summaryName)
@@ -263,6 +314,8 @@ func TestSummary(t *testing.T) {
 }
 
 func TestUnregisterSummaries(t *testing.T) {
+	setup()
+	defer cleanup()
 	RegisterSummaries(summaryOpts)
 
 	UnregisterSummaries(summaryName)
