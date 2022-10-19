@@ -45,6 +45,9 @@ func start(cliCtx *cli.Context) error {
 		return err
 	}
 	setupLog(c.Log)
+	if c.Metrics.Enabled {
+		metrics.Initialize()
+	}
 	runStateMigrations(c.StateDB)
 	stateSqlDB, err := db.NewSQLDB(c.StateDB)
 	if err != nil {
@@ -67,11 +70,6 @@ func start(cliCtx *cli.Context) error {
 		log.Fatal(err)
 
 	}
-
-	if c.Metrics.Enabled {
-		metrics.Initialize()
-	}
-
 	c.Aggregator.ChainID = l2ChainID
 	c.RPC.ChainID = l2ChainID
 	log.Infof("Chain ID read from POE SC = %v", l2ChainID)
