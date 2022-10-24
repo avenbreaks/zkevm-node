@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net"
@@ -45,7 +44,7 @@ func start(cliCtx *cli.Context) error {
 		return err
 	}
 	setupLog(c.Log)
-	if c.Metrics.Enabled {
+	if c.Metrics.URI != "" {
 		metrics.Initialize()
 	}
 	runStateMigrations(c.StateDB)
@@ -110,7 +109,7 @@ func start(cliCtx *cli.Context) error {
 		}
 	}
 
-	if c.Metrics.Enabled {
+	if c.Metrics.URI != "" {
 		go startMetricsHttpServer(c)
 	}
 
@@ -306,8 +305,7 @@ func createPool(poolDBConfig db.Config, l2BridgeAddr common.Address, l2ChainID u
 
 func startMetricsHttpServer(c *config.Config) {
 	mux := http.NewServeMux()
-	address := fmt.Sprintf("%s:%d", c.Metrics.Host, c.Metrics.Port)
-	lis, err := net.Listen("tcp", address)
+	lis, err := net.Listen("tcp", c.Metrics.URI)
 	if err != nil {
 		log.Fatalf("failed to create tcp listener for metrics: %v", err)
 		return

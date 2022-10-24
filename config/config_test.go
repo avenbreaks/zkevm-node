@@ -264,16 +264,8 @@ func Test_Defaults(t *testing.T) {
 			expectedValue: 61090,
 		},
 		{
-			path:          "Metrics.Host",
-			expectedValue: "0.0.0.0",
-		},
-		{
-			path:          "Metrics.Port",
-			expectedValue: 9091,
-		},
-		{
-			path:          "Metrics.Enabled",
-			expectedValue: false,
+			path:          "Metrics.URI",
+			expectedValue: "",
 		},
 	}
 	file, err := ioutil.TempFile("", "genesisConfig")
