@@ -119,7 +119,5 @@ Host = "0.0.0.0"
 Port = 61090
 
 [Metrics]
-Host = "0.0.0.0"
-Port = 9091
-Enabled = false
+URI = ""
 `
